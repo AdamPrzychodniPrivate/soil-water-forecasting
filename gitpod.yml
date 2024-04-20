@@ -1,5 +1,0 @@
-tasks:
-  - init: |
-      pyenv install 3.11.9 -s
-      pyenv global 3.11.9
-      echo "Python version set to $(python --version)"
