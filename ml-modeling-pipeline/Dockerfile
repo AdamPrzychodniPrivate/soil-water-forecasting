@@ -2,8 +2,10 @@ ARG BASE_IMAGE=python:3.9-slim
 FROM $BASE_IMAGE as runtime-environment
 
 # install project requirements
-COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache -r /tmp/requirements.txt && rm -f /tmp/requirements.txt
+# COPY requirements.txt /tmp/requirements.txt
+COPY requirements.lock /tmp/requirements.lock
+# RUN pip install --no-cache -r /tmp/requirements.txt && rm -f /tmp/requirements.txt
+RUN pip install --no-cache -r /tmp/requirements.lock && rm -f /tmp/requirements.lock
 
 # add kedro user
 ARG KEDRO_UID=999
