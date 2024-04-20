@@ -53,6 +53,10 @@ shuttles:
   load_args:
     engine: openpyxl
 
+power_nasa_data:
+  type: kedro_datasets.netcdf.NetCDFDataset
+  filepath: data/01_raw/power_nasa_data.nc
+
 preprocessed_companies:
   type: pandas.ParquetDataset
   filepath: data/02_intermediate/preprocessed_companies.pq
