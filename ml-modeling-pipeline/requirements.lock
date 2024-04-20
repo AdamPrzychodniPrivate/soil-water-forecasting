@@ -4,8 +4,14 @@
 #
 #    pip-compile --output-file=requirements.lock requirements.txt
 #
+affine==2.4.0
+    # via rasterio
 aiofiles==23.2.1
     # via kedro-viz
+aiohttp==3.9.5
+    # via -r requirements.txt
+aiosignal==1.3.1
+    # via aiohttp
 annotated-types==0.6.0
     # via pydantic
 antlr4-python3-runtime==4.9.3
@@ -31,8 +37,11 @@ async-lru==2.0.4
     # via jupyterlab
 attrs==23.2.0
     # via
+    #   aiohttp
+    #   fiona
     #   jsonschema
     #   kedro
+    #   rasterio
     #   referencing
 babel==2.14.0
     # via jupyterlab-server
@@ -48,10 +57,15 @@ build==1.2.1
     # via kedro
 cachetools==5.3.3
     # via kedro
+cartopy==0.23.0
+    # via -r requirements.txt
 certifi==2024.2.2
     # via
+    #   fiona
     #   httpcore
     #   httpx
+    #   pyproj
+    #   rasterio
     #   requests
 cffi==1.16.0
     # via argon2-cffi-bindings
@@ -62,11 +76,23 @@ charset-normalizer==3.3.2
 click==8.1.7
     # via
     #   click-default-group
+    #   click-plugins
+    #   cligj
     #   cookiecutter
+    #   fiona
     #   kedro
+    #   rasterio
     #   uvicorn
 click-default-group==1.2.4
     # via kedro-viz
+click-plugins==1.1.1
+    # via
+    #   fiona
+    #   rasterio
+cligj==0.7.2
+    # via
+    #   fiona
+    #   rasterio
 comm==0.2.2
     # via ipykernel
 contourpy==1.2.1
@@ -93,17 +119,27 @@ fastapi==0.110.2
     # via kedro-viz
 fastjsonschema==2.19.1
     # via nbformat
+fiona==1.9.6
+    # via geopandas
 folium==0.16.0
     # via -r requirements.txt
 fonttools==4.51.0
     # via matplotlib
 fqdn==1.5.1
     # via jsonschema
+frozenlist==1.4.1
+    # via
+    #   aiohttp
+    #   aiosignal
 fsspec==2024.3.1
     # via
     #   -r requirements.txt
     #   kedro
     #   kedro-viz
+geopandas==0.14.3
+    # via
+    #   -r requirements.txt
+    #   regionmask
 gitdb==4.0.11
     # via gitpython
 gitpython==3.1.43
@@ -128,6 +164,7 @@ idna==3.7
     #   httpx
     #   jsonschema
     #   requests
+    #   yarl
 importlib-metadata==7.1.0
     # via kedro
 importlib-resources==6.4.0
@@ -228,6 +265,7 @@ markupsafe==2.1.5
     #   nbconvert
 matplotlib==3.8.4
     # via
+    #   cartopy
     #   kedro-datasets
     #   seaborn
 matplotlib-inline==0.1.7
@@ -240,6 +278,10 @@ mistune==3.0.2
     # via nbconvert
 more-itertools==10.2.0
     # via kedro
+multidict==6.0.5
+    # via
+    #   aiohttp
+    #   yarl
 nbclient==0.10.0
     # via nbconvert
 nbconvert==7.16.3
@@ -261,14 +303,19 @@ notebook-shim==0.2.4
     #   notebook
 numpy==1.26.4
     # via
+    #   cartopy
     #   contourpy
     #   folium
     #   matplotlib
     #   pandas
     #   pyarrow
+    #   rasterio
+    #   regionmask
     #   scikit-learn
     #   scipy
     #   seaborn
+    #   shapely
+    #   snuggs
     #   xarray
 omegaconf==2.3.0
     # via kedro
@@ -281,6 +328,8 @@ overrides==7.7.0
 packaging==23.2
     # via
     #   build
+    #   cartopy
+    #   geopandas
     #   ipykernel
     #   jupyter-server
     #   jupyterlab
@@ -290,11 +339,14 @@ packaging==23.2
     #   matplotlib
     #   nbconvert
     #   plotly
+    #   pooch
     #   pytest
     #   pytoolconfig
+    #   regionmask
     #   xarray
 pandas==2.2.2
     # via
+    #   geopandas
     #   kedro-datasets
     #   kedro-viz
     #   seaborn
@@ -312,6 +364,7 @@ pillow==10.3.0
 platformdirs==4.2.0
     # via
     #   jupyter-core
+    #   pooch
     #   pytoolconfig
 plotly==5.21.0
     # via
@@ -321,6 +374,8 @@ pluggy==1.3.0
     # via
     #   kedro
     #   pytest
+pooch==1.8.1
+    # via regionmask
 pre-commit-hooks==4.6.0
     # via kedro
 prometheus-client==0.20.0
@@ -351,9 +406,17 @@ pygments==2.17.2
     #   nbconvert
     #   rich
 pyparsing==3.1.2
-    # via matplotlib
+    # via
+    #   matplotlib
+    #   snuggs
+pyproj==3.6.1
+    # via
+    #   cartopy
+    #   geopandas
 pyproject-hooks==1.0.0
     # via build
+pyshp==2.3.1
+    # via cartopy
 pytest==7.4.4
     # via
     #   -r requirements.txt
@@ -392,17 +455,23 @@ pyzmq==26.0.2
     #   ipykernel
     #   jupyter-client
     #   jupyter-server
+rasterio==1.3.10
+    # via regionmask
 referencing==0.34.0
     # via
     #   jsonschema
     #   jsonschema-specifications
     #   jupyter-events
+regionmask==0.12.1
+    # via -r requirements.txt
 requests==2.31.0
     # via
+    #   -r requirements.txt
     #   cookiecutter
     #   folium
     #   jupyterlab-server
     #   kedro-telemetry
+    #   pooch
 rfc3339-validator==0.1.4
     # via
     #   jsonschema
@@ -437,10 +506,16 @@ secure==0.3.0
     # via kedro-viz
 send2trash==1.8.3
     # via jupyter-server
+shapely==2.0.4
+    # via
+    #   cartopy
+    #   geopandas
+    #   regionmask
 six==1.16.0
     # via
     #   asttokens
     #   bleach
+    #   fiona
     #   python-dateutil
     #   rfc3339-validator
 smmap==5.0.1
@@ -449,6 +524,8 @@ sniffio==1.3.1
     # via
     #   anyio
     #   httpx
+snuggs==1.4.7
+    # via rasterio
 soupsieve==2.5
     # via beautifulsoup4
 sqlalchemy==2.0.29
@@ -534,8 +611,15 @@ websocket-client==1.7.0
 websockets==12.0
     # via uvicorn
 xarray==2024.3.0
-    # via -r requirements.txt
+    # via
+    #   -r requirements.txt
+    #   regionmask
 xyzservices==2024.4.0
     # via folium
+yarl==1.9.4
+    # via aiohttp
 zipp==3.18.1
     # via importlib-metadata
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

@@ -15,3 +15,8 @@ seaborn~=0.12.1
 xarray
 fsspec
 folium
+geopandas
+regionmask
+aiohttp
+requests
+cartopy
