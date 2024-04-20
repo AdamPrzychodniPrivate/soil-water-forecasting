@@ -24,3 +24,9 @@ cartopy
 zarr
 pygadm
 netCDF4
+geopandas
+dask_geopandas
+shapely
+dask
+dask[dataframe]
+polars

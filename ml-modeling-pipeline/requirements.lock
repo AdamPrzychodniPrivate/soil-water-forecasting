@@ -88,6 +88,8 @@ click==8.1.7
     #   click-plugins
     #   cligj
     #   cookiecutter
+    #   dask
+    #   distributed
     #   fiona
     #   kedro
     #   rasterio
@@ -102,6 +104,10 @@ cligj==0.7.2
     # via
     #   fiona
     #   rasterio
+cloudpickle==3.0.0
+    # via
+    #   dask
+    #   distributed
 comm==0.2.2
     # via ipykernel
 contourpy==1.2.1
@@ -112,6 +118,16 @@ coverage[toml]==7.4.4
     # via pytest-cov
 cycler==0.12.1
     # via matplotlib
+dask[array,dataframe]==2024.4.2
+    # via
+    #   -r requirements.txt
+    #   dask-expr
+    #   dask-geopandas
+    #   distributed
+dask-expr==1.0.12
+    # via dask
+dask-geopandas==0.3.1
+    # via -r requirements.txt
 debugpy==1.8.1
     # via ipykernel
 decorator==5.1.1
@@ -120,6 +136,8 @@ defusedxml==0.7.1
     # via nbconvert
 deprecated==1.2.14
     # via pygadm
+distributed==2024.4.2
+    # via dask-geopandas
 dynaconf==3.2.5
     # via kedro
 et-xmlfile==1.1.0
@@ -147,11 +165,13 @@ frozenlist==1.4.1
 fsspec==2024.3.1
     # via
     #   -r requirements.txt
+    #   dask
     #   kedro
     #   kedro-viz
 geopandas==0.14.3
     # via
     #   -r requirements.txt
+    #   dask-geopandas
     #   pygadm
     #   regionmask
 gitdb==4.0.11
@@ -180,7 +200,9 @@ idna==3.7
     #   requests
     #   yarl
 importlib-metadata==7.1.0
-    # via kedro
+    # via
+    #   dask
+    #   kedro
 importlib-resources==6.4.0
     # via kedro
 iniconfig==2.0.0
@@ -200,6 +222,7 @@ jinja2==3.1.3
     # via
     #   branca
     #   cookiecutter
+    #   distributed
     #   folium
     #   jupyter-server
     #   jupyterlab
@@ -271,6 +294,10 @@ kiwisolver==1.4.5
     # via matplotlib
 lazy-loader==0.4
     # via kedro-datasets
+locket==1.0.0
+    # via
+    #   distributed
+    #   partd
 markdown-it-py==3.0.0
     # via rich
 markupsafe==2.1.5
@@ -292,6 +319,8 @@ mistune==3.0.2
     # via nbconvert
 more-itertools==10.2.0
     # via kedro
+msgpack==1.0.8
+    # via distributed
 multidict==6.0.5
     # via
     #   aiohttp
@@ -324,6 +353,7 @@ numpy==1.26.4
     #   cartopy
     #   cftime
     #   contourpy
+    #   dask
     #   folium
     #   matplotlib
     #   netcdf4
@@ -351,6 +381,9 @@ packaging==23.2
     # via
     #   build
     #   cartopy
+    #   dask
+    #   dask-geopandas
+    #   distributed
     #   geopandas
     #   ipykernel
     #   jupyter-server
@@ -368,6 +401,8 @@ packaging==23.2
     #   xarray
 pandas==2.2.2
     # via
+    #   dask
+    #   dask-expr
     #   geopandas
     #   kedro-datasets
     #   kedro-viz
@@ -379,6 +414,8 @@ parse==1.20.1
     # via kedro
 parso==0.8.4
     # via jedi
+partd==1.4.1
+    # via dask
 pexpect==4.9.0
     # via ipython
 pillow==10.3.0
@@ -397,6 +434,8 @@ pluggy==1.3.0
     # via
     #   kedro
     #   pytest
+polars==0.20.21
+    # via -r requirements.txt
 pooch==1.8.1
     # via regionmask
 pre-commit-hooks==4.6.0
@@ -406,7 +445,9 @@ prometheus-client==0.20.0
 prompt-toolkit==3.0.43
     # via ipython
 psutil==5.9.8
-    # via ipykernel
+    # via
+    #   distributed
+    #   ipykernel
 ptyprocess==0.7.0
     # via
     #   pexpect
@@ -415,6 +456,7 @@ pure-eval==0.2.2
     # via stack-data
 pyarrow==15.0.2
     # via
+    #   dask-expr
     #   kedro-datasets
     #   pygadm
 pycparser==2.22
@@ -473,6 +515,8 @@ pytz==2024.1
 pyyaml==6.0.1
     # via
     #   cookiecutter
+    #   dask
+    #   distributed
     #   jupyter-events
     #   kedro
     #   omegaconf
@@ -538,6 +582,7 @@ send2trash==1.8.3
     # via jupyter-server
 shapely==2.0.4
     # via
+    #   -r requirements.txt
     #   cartopy
     #   geopandas
     #   regionmask
@@ -557,6 +602,8 @@ sniffio==1.3.1
     #   httpx
 snuggs==1.4.7
     # via rasterio
+sortedcontainers==2.4.0
+    # via distributed
 soupsieve==2.5
     # via beautifulsoup4
 sqlalchemy==2.0.29
@@ -567,6 +614,8 @@ starlette==0.37.2
     # via fastapi
 strawberry-graphql==0.227.0
     # via kedro-viz
+tblib==3.0.0
+    # via distributed
 tenacity==8.2.3
     # via plotly
 terminado==0.18.1
@@ -581,10 +630,16 @@ tinycss2==1.2.1
     # via nbconvert
 toml==0.10.2
     # via kedro
+toolz==0.12.1
+    # via
+    #   dask
+    #   distributed
+    #   partd
 toposort==1.10
     # via kedro-viz
 tornado==6.4
     # via
+    #   distributed
     #   ipykernel
     #   jupyter-client
     #   jupyter-server
@@ -623,6 +678,7 @@ url-normalize==1.4.3
     # via requests-cache
 urllib3==2.2.1
     # via
+    #   distributed
     #   requests
     #   requests-cache
 uvicorn[standard]==0.29.0
@@ -657,6 +713,8 @@ yarl==1.9.4
     # via aiohttp
 zarr==2.17.2
     # via -r requirements.txt
+zict==3.0.0
+    # via distributed
 zipp==3.18.1
     # via importlib-metadata
 
