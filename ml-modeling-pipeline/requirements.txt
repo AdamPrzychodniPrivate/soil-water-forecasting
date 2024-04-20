@@ -12,6 +12,7 @@ pytest~=7.2
 ruff~=0.1.8
 scikit-learn~=1.0
 seaborn~=0.12.1
+
 xarray
 fsspec
 folium
@@ -20,3 +21,6 @@ regionmask
 aiohttp
 requests
 cartopy
+zarr
+pygadm
+netCDF4
