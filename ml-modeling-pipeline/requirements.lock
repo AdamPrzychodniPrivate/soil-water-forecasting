@@ -49,6 +49,10 @@ attrs==23.2.0
     #   requests-cache
 babel==2.14.0
     # via jupyterlab-server
+basemap==1.4.1
+    # via -r requirements.txt
+basemap-data==1.3.2
+    # via basemap
 beautifulsoup4==4.12.3
     # via nbconvert
 binaryornot==0.4.4
@@ -306,6 +310,7 @@ markupsafe==2.1.5
     #   nbconvert
 matplotlib==3.8.4
     # via
+    #   basemap
     #   cartopy
     #   kedro-datasets
     #   seaborn
@@ -350,6 +355,7 @@ numcodecs==0.12.1
     # via zarr
 numpy==1.26.4
     # via
+    #   basemap
     #   cartopy
     #   cftime
     #   contourpy
@@ -360,6 +366,7 @@ numpy==1.26.4
     #   numcodecs
     #   pandas
     #   pyarrow
+    #   pygeos
     #   rasterio
     #   regionmask
     #   scikit-learn
@@ -379,6 +386,7 @@ overrides==7.7.0
     # via jupyter-server
 packaging==23.2
     # via
+    #   basemap
     #   build
     #   cartopy
     #   dask
@@ -469,6 +477,8 @@ pydantic-core==2.18.1
     # via pydantic
 pygadm==0.5.2
     # via -r requirements.txt
+pygeos==0.14
+    # via -r requirements.txt
 pygments==2.17.2
     # via
     #   ipython
@@ -480,12 +490,15 @@ pyparsing==3.1.2
     #   snuggs
 pyproj==3.6.1
     # via
+    #   basemap
     #   cartopy
     #   geopandas
 pyproject-hooks==1.0.0
     # via build
 pyshp==2.3.1
-    # via cartopy
+    # via
+    #   basemap
+    #   cartopy
 pytest==7.4.4
     # via
     #   -r requirements.txt
