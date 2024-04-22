@@ -18,3 +18,5 @@ tasks:
       
       # Verify installation
       python --version
+      source .venv/bin/activate
+      cd ml-modeling-pipeline/
