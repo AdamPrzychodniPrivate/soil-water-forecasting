@@ -32,3 +32,5 @@ dask[dataframe]
 polars
 basemap
 pygeos
+hvplot
+geoviews
