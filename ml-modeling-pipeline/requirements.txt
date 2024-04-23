@@ -37,3 +37,4 @@ geoviews
 plotly
 altair
 statsmodels
+descartes

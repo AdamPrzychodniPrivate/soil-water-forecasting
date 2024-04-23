@@ -157,6 +157,8 @@ defusedxml==0.7.1
     # via nbconvert
 deprecated==1.2.14
     # via pygadm
+descartes==1.1.0
+    # via -r requirements.txt
 distributed==2024.4.2
     # via dask-geopandas
 dynaconf==3.2.5
@@ -347,6 +349,7 @@ matplotlib==3.8.4
     # via
     #   basemap
     #   cartopy
+    #   descartes
     #   kedro-datasets
     #   seaborn
 matplotlib-inline==0.1.7
