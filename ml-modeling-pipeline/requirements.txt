@@ -34,3 +34,5 @@ basemap
 pygeos
 hvplot
 geoviews
+plotly
+altair
