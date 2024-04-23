@@ -36,3 +36,4 @@ hvplot
 geoviews
 plotly
 altair
+statsmodels

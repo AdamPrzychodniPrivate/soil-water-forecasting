@@ -407,6 +407,7 @@ numpy==1.26.4
     #   netcdf4
     #   numcodecs
     #   pandas
+    #   patsy
     #   pyarrow
     #   pygeos
     #   rasterio
@@ -416,6 +417,7 @@ numpy==1.26.4
     #   seaborn
     #   shapely
     #   snuggs
+    #   statsmodels
     #   xarray
     #   zarr
 omegaconf==2.3.0
@@ -453,6 +455,7 @@ packaging==23.2
     #   pytest
     #   pytoolconfig
     #   regionmask
+    #   statsmodels
     #   xarray
 pandas==2.2.2
     # via
@@ -467,6 +470,7 @@ pandas==2.2.2
     #   kedro-viz
     #   panel
     #   seaborn
+    #   statsmodels
     #   xarray
 pandocfilters==1.5.1
     # via nbconvert
@@ -488,6 +492,8 @@ parso==0.8.4
     # via jedi
 partd==1.4.1
     # via dask
+patsy==0.5.6
+    # via statsmodels
 pexpect==4.9.0
     # via ipython
 pillow==10.3.0
@@ -660,7 +666,9 @@ ruff==0.1.15
 scikit-learn==1.4.2
     # via -r requirements.txt
 scipy==1.13.0
-    # via scikit-learn
+    # via
+    #   scikit-learn
+    #   statsmodels
 seaborn==0.12.2
     # via -r requirements.txt
 secure==0.3.0
@@ -679,6 +687,7 @@ six==1.16.0
     #   asttokens
     #   bleach
     #   fiona
+    #   patsy
     #   python-dateutil
     #   rfc3339-validator
     #   url-normalize
@@ -700,6 +709,8 @@ stack-data==0.6.3
     # via ipython
 starlette==0.37.2
     # via fastapi
+statsmodels==0.14.2
+    # via -r requirements.txt
 strawberry-graphql==0.227.0
     # via kedro-viz
 tblib==3.0.0
