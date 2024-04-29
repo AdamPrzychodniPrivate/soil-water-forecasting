@@ -38,3 +38,4 @@ plotly
 altair
 statsmodels
 descartes
+boto3

@@ -68,6 +68,12 @@ bokeh==3.4.1
     #   geoviews
     #   hvplot
     #   panel
+boto3==1.34.92
+    # via -r requirements.txt
+botocore==1.34.92
+    # via
+    #   boto3
+    #   s3transfer
 branca==0.7.1
     # via folium
 build==1.2.1
@@ -261,6 +267,10 @@ jinja2==3.1.3
     #   jupyterlab
     #   jupyterlab-server
     #   nbconvert
+jmespath==1.0.1
+    # via
+    #   boto3
+    #   botocore
 joblib==1.4.0
     # via scikit-learn
 json5==0.9.25
@@ -588,6 +598,7 @@ pytest-mock==1.13.0
 python-dateutil==2.9.0.post0
     # via
     #   arrow
+    #   botocore
     #   jupyter-client
     #   matplotlib
     #   pandas
@@ -666,6 +677,8 @@ ruamel-yaml-clib==0.2.8
     # via ruamel-yaml
 ruff==0.1.15
     # via -r requirements.txt
+s3transfer==0.10.1
+    # via boto3
 scikit-learn==1.4.2
     # via -r requirements.txt
 scipy==1.13.0
@@ -787,6 +800,7 @@ url-normalize==1.4.3
     # via requests-cache
 urllib3==2.2.1
     # via
+    #   botocore
     #   distributed
     #   requests
     #   requests-cache
