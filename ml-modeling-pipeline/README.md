@@ -25,6 +25,19 @@ To install them, run:
 pip install -r requirements.txt
 ```
 
+## How to install new additional dependencies
+
+Declare new dependencies in `requirements.txt`, then run:
+
+```
+pip-compile requirements.txt --output-file requirements.lock
+```
+
+after this 
+```
+pip install -r requirements.lock
+```
+
 ## How to run your Kedro pipeline
 
 You can run your Kedro project with:
