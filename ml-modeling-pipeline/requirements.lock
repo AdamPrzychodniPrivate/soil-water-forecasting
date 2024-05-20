@@ -432,6 +432,7 @@ numpy==1.26.4
     #   snuggs
     #   statsmodels
     #   xarray
+    #   xgboost
     #   zarr
 omegaconf==2.3.0
     # via kedro
@@ -685,6 +686,7 @@ scipy==1.13.0
     # via
     #   scikit-learn
     #   statsmodels
+    #   xgboost
 seaborn==0.12.2
     # via -r requirements.txt
 secure==0.3.0
@@ -830,6 +832,8 @@ xarray==2024.3.0
     # via
     #   -r requirements.txt
     #   regionmask
+xgboost==2.0.3
+    # via -r requirements.txt
 xyzservices==2024.4.0
     # via
     #   bokeh

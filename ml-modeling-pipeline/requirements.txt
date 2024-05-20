@@ -39,3 +39,4 @@ altair
 statsmodels
 descartes
 boto3
+xgboost
