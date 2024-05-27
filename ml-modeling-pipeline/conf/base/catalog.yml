@@ -39,6 +39,7 @@
 # (transcoding), templating and a way to reuse arguments that are frequently repeated. See more here:
 # https://kedro.readthedocs.io/en/stable/data/data_catalog.html
 
+# ./01_raw
 companies:
   type: pandas.CSVDataset
   filepath: data/01_raw/companies.csv
@@ -51,12 +52,40 @@ shuttles:
   type: pandas.ExcelDataset
   filepath: data/01_raw/shuttles.xlsx
   load_args:
-    engine: openpyxl
+    engine: openpyxl 
 
 power_nasa_data:
-  type: kedro_datasets.netcdf.NetCDFDataset
-  filepath: data/01_raw/power_nasa_data.nc
+  type: ppolars.EagerPolarsDataset
+  file_format: parquet
+  filepath: data/01_raw/power_nasa_data.parquet
+  load_args:
+    low_memory: True
+  save_args:
+    compression: "snappy"
 
+merged_eddi_data:
+  type: polars.EagerPolarsDataset
+  file_format: parquet
+  filepath: data/01_raw/merged_eddi_data.parquet
+  load_args:
+    low_memory: True
+  save_args:
+    compression: "snappy"
+
+merged_nino_data:
+  type: polars.EagerPolarsDataset
+  file_format: parquet
+  filepath: data/01_raw/merged_nino_data.parquet
+  load_args:
+    low_memory: True
+  save_args:
+    compression: "snappy"
+
+countries_borders:
+  type: geopandas.GeoJSONDataset
+  filepath: data/01_raw/countries_ borders.geojson
+
+# ./02_intermediate
 preprocessed_companies:
   type: pandas.ParquetDataset
   filepath: data/02_intermediate/preprocessed_companies.pq
