@@ -2,9 +2,7 @@
 
 ## Overview
 
-This is your new Kedro project with Kedro-Viz setup, which was generated using `kedro 0.19.4`.
-
-Take a look at the [Kedro documentation](https://docs.kedro.org) to get started.
+This is Machine Learning Modeling Pipeline for Drought Forecasting in East Africa created using [kedro](https://docs.kedro.org) framework.
 
 ## Rules and guidelines
 
@@ -15,14 +13,23 @@ In order to get the best out of the template:
 * Don't commit data to your repository
 * Don't commit any credentials or your local configuration to your repository. Keep all your credentials and local configuration in `conf/local/`
 
+## Install Python
+
+Install Python 3.11.9
+
+## Create virtual venv 
+python3 -m venv .venv
+
 ## How to install dependencies
 
-Declare any dependencies in `requirements.txt` for `pip` installation.
-
-To install them, run:
+To install dependencies, run:
+```
+cd ml-modeling-pipeline/
+```
+and
 
 ```
-pip install -r requirements.txt
+pip install -r requirements.lock
 ```
 
 ## How to install new additional dependencies
