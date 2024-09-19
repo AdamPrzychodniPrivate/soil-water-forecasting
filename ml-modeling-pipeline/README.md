@@ -34,10 +34,11 @@ pip install -r requirements.lock
 
 ## How to install new additional dependencies
 
-Declare new dependencies in `requirements.txt`, then run:
+Declare new dependencies in `requirements.in`, then run:
 
 ```
-pip-compile requirements.txt --output-file requirements.lock
+pip-compile requirements.in --output-file requirements.lock
+
 ```
 
 after this 
