@@ -13,6 +13,7 @@ ruff~=0.1.8
 scikit-learn~=1.0
 seaborn~=0.12.1
 
+kedro-docker
 xarray
 fsspec
 folium
@@ -40,3 +41,10 @@ statsmodels
 descartes
 boto3
 xgboost
+torch
+torchvision 
+torchaudio 
+torch-scatter 
+torch-sparse 
+torch-geometric
+torch-spatiotemporal
