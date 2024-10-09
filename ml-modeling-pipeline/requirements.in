@@ -48,3 +48,4 @@ torch-scatter
 torch-sparse 
 torch-geometric
 torch-spatiotemporal
+cdsapi
