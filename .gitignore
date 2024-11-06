@@ -1,1 +1,7 @@
 .venv/
+# Ignore virtual environment
+.venv/
+
+# Ignore IDE configuration files and folders
+.idea/
+.DS_Store
