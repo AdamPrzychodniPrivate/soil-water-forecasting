@@ -53,6 +53,24 @@ shuttles:
   load_args:
     engine: openpyxl
 
+data_0:
+  type: netcdf.NetCDFDataset
+  filepath: data/01_raw/unzipped_files/ERA5_monthly_averaged_data_on_single_levels/data_0.nc
+  load_args:
+    chunks: auto
+
+data_1:
+  type: netcdf.NetCDFDataset
+  filepath: data/01_raw/unzipped_files/ERA5_monthly_averaged_data_on_single_levels/data_1.nc
+  load_args:
+    chunks: auto
+
+data_2:
+  type: netcdf.NetCDFDataset
+  filepath: data/01_raw/unzipped_files/ERA5_monthly_averaged_data_on_single_levels/data_2.nc
+  load_args:
+    chunks: auto
+
 preprocessed_companies:
   type: pandas.ParquetDataset
   filepath: data/02_intermediate/preprocessed_companies.parquet
