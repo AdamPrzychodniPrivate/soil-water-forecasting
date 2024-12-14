@@ -10,3 +10,28 @@ model_options:
     - iata_approved
     - company_rating
     - review_scores_rating
+
+target:
+  - swvl1             # Volumetric soil water layer 1
+
+covariates:
+  - u10               # 10-meter U wind component
+  - v10               # 10-meter V wind component
+  - t2m               # 2-meter temperature
+  - sst               # Sea surface temperature
+  - sp                # Surface pressure
+  - tp                # Total precipitation
+  - ssr               # Surface solar radiation
+  - ssrd              # Surface solar radiation downward
+  - tcc               # Total cloud cover
+  - cl                # Cloud liquid water content
+  - e                 # Evaporation
+  - pev               # Potential evaporation
+  - ro                # Runoff
+  - asn               # Snow albedo
+  - slt               # Soil type
+  - cvh               # High vegetation cover
+  - lai_hv            # High vegetation leaf area index
+  - tvh               # High vegetation transpiration
+  - z                 # Geopotential
+  - season            # Season (single temporal feature)

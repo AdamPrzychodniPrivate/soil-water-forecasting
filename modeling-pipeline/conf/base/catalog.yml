@@ -53,23 +53,55 @@ shuttles:
   load_args:
     engine: openpyxl
 
-data_0:
+ds_0:
   type: netcdf.NetCDFDataset
   filepath: data/01_raw/unzipped_files/ERA5_monthly_averaged_data_on_single_levels/data_0.nc
   load_args:
     chunks: auto
 
-data_1:
+ds_1:
   type: netcdf.NetCDFDataset
   filepath: data/01_raw/unzipped_files/ERA5_monthly_averaged_data_on_single_levels/data_1.nc
   load_args:
     chunks: auto
 
-data_2:
+ds_2:
   type: netcdf.NetCDFDataset
   filepath: data/01_raw/unzipped_files/ERA5_monthly_averaged_data_on_single_levels/data_2.nc
   load_args:
     chunks: auto
+
+ds_preprocessed:
+  type: netcdf.NetCDFDataset
+  filepath: data/02_intermediate/ds_preprocessed.nc
+  load_args:
+    chunks: auto
+
+ds_features:
+  type: netcdf.NetCDFDataset
+  filepath: data/04_feature/ds_features.nc
+  load_args:
+    chunks: auto
+
+target_data:
+  type: pickle.PickleDataset
+  filepath: data/05_model_input/target_data.npy
+
+target_mask:
+  type: pickle.PickleDataset
+  filepath: data/05_model_input/target_mask.npy
+
+covariates_data:
+  type: pickle.PickleDataset
+  filepath: data/05_model_input/covariates_data.npy
+
+metadata_array:
+  type: pickle.PickleDataset
+  filepath: data/05_model_input/metadata_array.npy
+
+
+
+
 
 preprocessed_companies:
   type: pandas.ParquetDataset
