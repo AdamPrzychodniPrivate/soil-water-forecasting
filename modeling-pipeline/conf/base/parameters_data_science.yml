@@ -35,3 +35,12 @@ covariates:
   - tvh               # High vegetation transpiration
   - z                 # Geopotential
   - season            # Season (single temporal feature)
+
+connectivity:
+  method: distance
+  threshold: 0.1
+  knn: 8
+  binary_weights: False
+  include_self: False
+  force_symmetric: True
+  layout: csr

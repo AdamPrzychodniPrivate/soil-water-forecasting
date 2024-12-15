@@ -99,8 +99,13 @@ metadata_array:
   type: pickle.PickleDataset
   filepath: data/05_model_input/metadata_array.npy
 
+distance_matrix:
+  type: pickle.PickleDataset
+  filepath: data/05_model_input/distance_matrix.npy
 
-
+connectivity_matrix:
+  type: pickle.PickleDataset
+  filepath: data/05_model_input/connectivity.pkl
 
 
 preprocessed_companies:

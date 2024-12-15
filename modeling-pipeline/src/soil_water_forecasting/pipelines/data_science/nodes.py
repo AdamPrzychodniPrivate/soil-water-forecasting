@@ -197,3 +197,228 @@ def generate_metadata_array(
 
 # Example usage:
 # metadata_array = generate_metadata_array(ds=ds)
+
+
+import pandas as pd
+from tsl.ops.similarities import geographical_distance
+
+def create_distance_matrix(parquet_path: str, to_rad: bool = True):
+    """
+    Create a geographical distance matrix from metadata stored in a parquet file.
+
+    Args:
+        parquet_path (str): Path to the parquet file containing metadata.
+        to_rad (bool): Whether to convert coordinates to radians before calculation.
+
+    Returns:
+        numpy.ndarray: A NumPy array containing the distance matrix.
+
+    Example usage:
+        distance_matrix = create_distance_matrix(parquet_file_path)
+    """
+    try:
+        # Load metadata from the parquet file
+        metadata = pd.read_parquet(parquet_path)
+
+        # Validate the presence of required columns
+        required_columns = {'latitude', 'longitude'}
+        if not required_columns.issubset(metadata.columns):
+            raise ValueError(f"The metadata file must contain the columns: {required_columns}")
+
+        # Calculate geographical distances
+        distance_matrix = geographical_distance(metadata, to_rad=to_rad).values
+
+        return distance_matrix
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        raise
+
+# Create the distance matrix
+# distance_matrix = create_distance_matrix(parquet_file_path)
+
+import numpy as np
+import pandas as pd 
+
+from tsl.datasets.prototypes import TabularDataset
+from tsl.ops.similarities import gaussian_kernel
+
+class SoilWaterDataset(TabularDataset):
+
+    similarity_options = {'distance', 'grid'}
+
+    def __init__(self,
+                 mode: str = 'connectivity',
+                 target: Optional[np.ndarray] = None,
+                 mask: Optional[np.ndarray] = None,
+                 distances: Optional[np.ndarray] = None,
+                 covariates: Optional[np.ndarray] = None,
+                 metadata: Optional[np.ndarray] = None):
+        """
+        Initialize the SoilWaterDataset.
+
+        Args:
+            mode (str): Mode of the dataset. Options are 'connectivity' or 'training'.
+            target (Optional[np.ndarray]): Target data.
+            mask (Optional[np.ndarray]): Mask data.
+            distances (Optional[np.ndarray]): Precomputed distance matrix (required in connectivity mode).
+            covariates (Optional[np.ndarray]): Covariates data.
+            metadata (Optional[np.ndarray]): Metadata (required in connectivity mode).
+        """
+        self.mode = mode
+        self.target = target
+        self.mask = mask
+        self.distances = distances
+        self.covariates = covariates
+        self.metadata = metadata
+
+        if self.mode not in ['connectivity', 'training']:
+            raise ValueError("Mode must be either 'connectivity' or 'training'")
+
+        if self.mode == 'connectivity':
+            if self.distances is None or self.metadata is None:
+                raise ValueError("'distances' and 'metadata' are required in 'connectivity' mode")
+
+        covariates_dict = {
+            'u': self.covariates
+        }
+
+        if self.mode == 'connectivity':
+            covariates_dict.update({
+                'metadata': self.metadata,
+                'distances': self.distances
+            })
+
+        super().__init__(target=self.target,
+                         mask=self.mask,
+                         covariates=covariates_dict,
+                         similarity_score='distance',
+                         temporal_aggregation='mean',
+                         spatial_aggregation='mean',
+                         name='SoilWaterDataset')
+
+    def compute_similarity(self, method: str, **kwargs):
+        """
+        Compute similarity matrix based on the specified method.
+
+        Args:
+            method (str): The similarity computation method ('distance' or 'grid').
+            **kwargs: Additional keyword arguments for similarity computation.
+
+        Returns:
+            numpy.ndarray: Computed similarity matrix.
+
+        Raises:
+            ValueError: If an unknown similarity method is provided.
+        """
+        if method == "distance":
+            # Calculate a Gaussian kernel similarity from the distance matrix, using a default or provided 'theta'
+            theta = kwargs.get('theta', np.std(self.distances))
+            return gaussian_kernel(self.distances, theta=theta)
+        elif method == "grid":
+            dist = self.distances.copy()
+            dist[dist > 16] = np.inf  # keep only grid edges
+            theta = kwargs.get('theta', 20)
+            return gaussian_kernel(dist, theta=theta)
+        else:
+            raise ValueError(f"Unknown similarity method: {method}")
+
+
+def get_connectivity_matrix(
+    mode: str = 'connectivity',
+    target: Optional[np.ndarray] = None,
+    mask: Optional[np.ndarray] = None,
+    distances: Optional[np.ndarray] = None,
+    covariates: Optional[np.ndarray] = None,
+    metadata: Optional[np.ndarray] = None,
+    method: str = 'distance',
+    threshold: float = 0.1,
+    knn: int = 8,
+    binary_weights: bool = False,
+    include_self: bool = False,
+    force_symmetric: bool = True,
+    layout: str = "csr"
+):
+    """
+    Compute the connectivity matrix for the SoilWaterDataset.
+
+    Args:
+        mode (str): Mode of the dataset. Options are 'connectivity' or 'training'.
+        target (Optional[np.ndarray]): Target data.
+        mask (Optional[np.ndarray]): Mask data.
+        distances (Optional[np.ndarray]): Precomputed distance matrix.
+        covariates (Optional[np.ndarray]): Covariates data.
+        metadata (Optional[np.ndarray]): Metadata.
+        method (str): Method to compute connectivity ('distance' or 'grid').
+        threshold (float): Threshold for edge creation based on similarity scores.
+        knn (int): Number of nearest neighbors to include in the graph.
+        binary_weights (bool): If True, use binary weights in the adjacency matrix.
+        include_self (bool): Whether to include self-loops.
+        force_symmetric (bool): Force the connectivity matrix to be symmetric.
+        layout (str): Desired layout of the connectivity matrix ('csr', 'coo', etc.).
+
+    Returns:
+        scipy.sparse.spmatrix: Connectivity matrix in the specified layout.
+
+    Example usage:
+        connectivity_matrix = get_connectivity_matrix(
+            mode='connectivity',
+            target=target_array,
+            mask=mask_array,
+            distances=distances_array,
+            covariates=covariates_array,
+            metadata=metadata_array
+        )
+    """
+    # Create an instance of SoilWaterDataset in the specified mode
+    dataset = SoilWaterDataset(mode=mode,
+                                target=target,
+                                mask=mask,
+                                distances=distances,
+                                covariates=covariates,
+                                metadata=metadata)
+
+    # Get the connectivity matrix
+    connectivity = dataset.get_connectivity(
+        method=method,
+        threshold=threshold,
+        knn=knn,
+        binary_weights=binary_weights,
+        include_self=include_self,
+        force_symmetric=force_symmetric,
+        layout=layout
+    )
+    
+    return connectivity
+
+
+# Create an instance of SoilWaterDataset in the specified mode
+dataset = SoilWaterDataset(mode='training',
+                            target=target,
+                            mask=mask,
+                            covariates=covariates)
+
+import torch
+
+connectivity = torch.load("soil-water-forecasting/modeling-pipeline/data/05_model_input/connectivity.pt")
+
+from tsl.data import SpatioTemporalDataset
+
+# covariates=dict(u=dataset.covariates['u'])
+covariates=dataset.covariates
+mask = dataset.mask
+
+horizon=6
+window=12
+stride=1
+
+torch_dataset = SpatioTemporalDataset(target=dataset.dataframe(),
+                                      mask=mask,
+                                      covariates=covariates,
+                                      connectivity=connectivity,
+                                      horizon=horizon, 
+                                      window=window, 
+                                      stride=stride 
+                                      )
+
+czy ja moge to jakos zapisac?
