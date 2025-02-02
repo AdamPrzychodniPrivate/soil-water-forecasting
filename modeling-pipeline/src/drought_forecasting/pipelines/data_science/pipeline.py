@@ -1,6 +1,6 @@
 from kedro.pipeline import Pipeline, node, pipeline
 
-from .nodes import evaluate_model, split_data, train_model, extract_target_variable, extract_covariates, generate_metadata_array, create_distance_matrix
+from .nodes import evaluate_model, split_data, train_model, extract_target_variable, extract_covariates, generate_metadata_array, create_distance_matrix, get_connectivity_matrix
 
 
 def create_pipeline(**kwargs) -> Pipeline:

@@ -84,15 +84,11 @@ def merge_datasets(
     Merges multiple xarray datasets, ensuring all timestamps in the 'valid_time' coordinate
     are standardized to '00:00:00.000000000' by truncating to date only.
     
-    Parameters:
+    Args:
         datasets (list): A list of xarray.Dataset objects to be merged.
     
     Returns:
         xr.Dataset: A merged dataset with standardized timestamps.
-
-    Example:
-        datasets = [ds_0, ds_1, ds_2]
-        ds = merge_datasets(datasets)
     """
     standardized_datasets = []
     
@@ -129,8 +125,6 @@ def fillna_in_variables(
     Returns:
         xr.Dataset: A new dataset with NaN values filled in the specified variables.
     
-    Example:
-        ds = fillna_in_variables(ds, ["sst", "t2m"], fill_value=0)
     """
     # Check if each variable exists in the dataset
     for var in variables:
@@ -157,7 +151,7 @@ def interpolate_to_target_grid(
     """
     Interpolates an xarray Dataset to a specified target latitude and longitude grid.
     
-    Parameters:
+    Args:
         ds (xr.Dataset): The input dataset to be interpolated.
         target_lat (array-like): Target latitude values (e.g., np.arange(-90, 90, 1)).
         target_lon (array-like): Target longitude values (e.g., np.arange(0, 360, 1)).
@@ -166,13 +160,6 @@ def interpolate_to_target_grid(
     
     Returns:
         xr.Dataset: The interpolated dataset on the specified target grid.
-
-    Example:
-        target_lat = np.arange(-90, 90, 1)   # 1° resolution latitude
-        target_lon = np.arange(0, 360, 1)   # 1° resolution longitude
-        method = "linear"
-
-        ds = interpolate_to_target_grid(ds, target_lat, target_lon, method)
     """
     # Step 1: Ensure latitude is in ascending order
     if ds.latitude[0] > ds.latitude[-1]:
@@ -184,27 +171,10 @@ def interpolate_to_target_grid(
     return interpolated_ds
 
 
-
-# datasets = [ds_0, ds_1, ds_2]
-# ds = merge_datasets(datasets)
-
-# # Update swvl1: Set to 1 wherever lsm indicates water (lsm == 1)
-# ds['swvl1'] = ds['swvl1'].where(ds['lsm'] != 0, other=1)
-
-# ds = fillna_in_variables(ds, ["sst"], fill_value=0)
-
-# ds = ds.drop_vars(['number', 'expver'])
-
-# # Example usage
-# target_lat = np.arange(-90, 90, 1)   # 1° resolution latitude
-# target_lon = np.arange(0, 360, 1)   # 1° resolution longitude
-# method = "linear"
-
-# ds = interpolate_to_target_grid(ds, target_lat, target_lon, method)
-
 from typing import List, Union
 import numpy as np
 import xarray as xr
+
 
 def preprocess(
     ds_0: xr.Dataset,
@@ -219,13 +189,14 @@ def preprocess(
     """
     Preprocesses and merges multiple xarray datasets with the following steps:
       1. Merges datasets.
-      2. Updates 'swvl1': Sets it to 1 wherever 'lsm' indicates water (lsm == 1).
-      3. Fills NaN values in specified variables with a given fill value.
-      4. Drops unnecessary variables.
-      5. Interpolates the dataset to a target latitude and longitude grid.
+      2. Fills NaN values in specified variables with a given fill value.
+      3. Drops unnecessary variables.
+      4. Interpolates the dataset to a target latitude and longitude grid.
 
-    Parameters:
-        datasets (List[xr.Dataset]): List of datasets to merge and preprocess.
+    Args:
+        ds_0 (xr.Dataset): First dataset to merge and preprocess.
+        ds_1 (xr.Dataset): Second dataset to merge and preprocess.
+        ds_2 (xr.Dataset): Third dataset to merge and preprocess.
         target_lat (np.ndarray): Target latitude grid for interpolation.
         target_lon (np.ndarray): Target longitude grid for interpolation.
         method (str): Interpolation method. Defaults to 'linear'.
@@ -239,37 +210,19 @@ def preprocess(
     datasets = [ds_0, ds_1, ds_2]
     ds = merge_datasets(datasets)
 
-    # Step 2: Update 'swvl1': Set to 1 wherever 'lsm' indicates water (lsm == 1)
-    if "swvl1" in ds and "lsm" in ds:
-        ds["swvl1"] = ds["swvl1"].where(ds["lsm"] != 0, other=1)
-
-    # Step 3: Fill NaN values in specified variables
+    # Step 2: Fill NaN values in specified variables
     if fill_variables:
         ds = fillna_in_variables(ds, fill_variables, fill_value)
 
-    # Step 4: Drop unnecessary variables
+    # Step 3: Drop unnecessary variables
     drop_vars = ["number", "expver"]
     ds = ds.drop_vars([var for var in drop_vars if var in ds])
 
-    # Step 5: Interpolate to the target grid
+    # Step 4: Interpolate to the target grid
     ds = interpolate_to_target_grid(ds, target_lat, target_lon, method)
 
     return ds
 
-# # Example usage
-# datasets = [ds_0, ds_1, ds_2]
-# target_lat = np.arange(-90, 90, 1)   # 1° resolution latitude
-# target_lon = np.arange(0, 360, 1)   # 1° resolution longitude
-# fill_variables = ["sst"]  # Variables to fill NaN values for
-
-# ds = preprocess(
-#     datasets=datasets,
-#     target_lat=target_lat,
-#     target_lon=target_lon,
-#     method="linear",
-#     fill_variables=fill_variables,
-#     fill_value=0
-# )
 
 import xarray as xr
 
@@ -286,9 +239,6 @@ def add_season_to_dataset(ds: xr.Dataset, time_var: str = "valid_time", lat_var:
 
     Returns:
         xr.Dataset: The modified dataset with an added 'season' variable.
-    Example: 
-        ds_with_season = add_season_to_dataset(ds, time_var="valid_time", lat_var="latitude", lon_var="longitude")
-
     """
     # Ensure the time variable is available in the dataset
     if time_var not in ds:
@@ -317,26 +267,83 @@ def add_season_to_dataset(ds: xr.Dataset, time_var: str = "valid_time", lat_var:
 
     return ds
 
-# ds_with_season = add_season_to_dataset(ds, time_var="valid_time", lat_var="latitude", lon_var="longitude")
 
+import xarray as xr
+from typing import Any
 
-def feature_engineering(
-    ds: xr.Dataset,
-) -> xr.Dataset:
+def update_dataset(ds: xr.Dataset) -> xr.Dataset:
     """
-    Performs feature engineering on the given xarray Dataset with the following steps:
-      1. Adds seasonal variables to the dataset based on time, latitude, and longitude.
+    Update dataset variables for water masking and unit conversion.
     
-    Parameters:
-        ds (xr.Dataset): The input xarray Dataset to preprocess.
+    This function applies several updates to the input dataset:
+      - For 'swvl1': Sets values to 1 wherever 'lsm' indicates water 
+        (assumed to be where ds['lsm'] == 0).
+      - For 'pev': Sets values to 0 wherever 'lsm' indicates water.
+      - For 'tp', 'pev', and 'e': Multiplies the values by 1000 and updates 
+        their 'units' attribute to 'mm'.
+
+    Args:
+        ds (xr.Dataset): The input dataset containing the variables:
+            - 'swvl1': Soil water variable.
+            - 'lsm': Land-sea mask (assumes 0 indicates water).
+            - 'pev': Potential evapotranspiration variable.
+            - 'tp': Total precipitation variable.
+            - 'e': Evaporation variable.
 
     Returns:
-        xr.Dataset: The processed xarray Dataset with additional seasonal variables.
+        xr.Dataset: The updated dataset with modified variables.
     """
-    # Step 1: Add seasons variables to dataset
-    ds = add_season_to_dataset(ds, time_var="valid_time", lat_var="latitude", lon_var="longitude")
+    # Check that all required variables exist in the dataset.
+    required_vars = ['swvl1', 'lsm', 'pev', 'tp', 'e']
+    for var in required_vars:
+        if var not in ds:
+            raise KeyError(f"Dataset must contain variable '{var}'")
+    
+    # Update swvl1: Set to 1 wherever lsm indicates water (assuming water is represented by 0).
+    ds['swvl1'] = ds['swvl1'].where(ds['lsm'] != 0, other=1)
+    
+    # Update pev: Set to 0 wherever lsm indicates water.
+    ds['pev'] = ds['pev'].where(ds['lsm'] != 0, other=0)
+    
+    # Convert 'tp' values by multiplying by 1000 and update attributes.
+    tp_attrs = ds['tp'].attrs.copy()  # Copy original attributes.
+    ds['tp'] = ds['tp'] * 1000
+    tp_attrs['units'] = 'mm'
+    ds['tp'].attrs = tp_attrs
+    
+    # Convert 'pev' values by multiplying by 1000 and update attributes.
+    pev_attrs = ds['pev'].attrs.copy()
+    ds['pev'] = ds['pev'] * 1000
+    pev_attrs['units'] = 'mm'
+    ds['pev'].attrs = pev_attrs
+    
+    # Convert 'e' values by multiplying by 1000 and update attributes.
+    e_attrs = ds['e'].attrs.copy()
+    ds['e'] = ds['e'] * 1000
+    e_attrs['units'] = 'mm'
+    ds['e'].attrs = e_attrs
 
     return ds
 
-# # Example usage
-# ds = feature_engineering(ds)
+
+def feature_engineering(ds: xr.Dataset) -> xr.Dataset:
+    """
+    Performs feature engineering on the input xarray Dataset.
+    
+    The function executes the following steps:
+      1. Adds seasonal variables based on time, latitude, and longitude.
+      2. Applies dataset updates for water masking and unit conversion.
+
+    Args:
+        ds (xr.Dataset): The input xarray Dataset containing meteorological and geographical variables.
+
+    Returns:
+        xr.Dataset: The processed dataset with additional seasonal features and updated variables.
+    """
+    # Step 1: Add seasonal features based on time, latitude, and longitude
+    ds = add_season_to_dataset(ds, time_var="valid_time", lat_var="latitude", lon_var="longitude")
+    
+    # Step 2: Apply dataset updates
+    ds = update_dataset(ds)
+    
+    return ds

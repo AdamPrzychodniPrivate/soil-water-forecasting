@@ -60,6 +60,8 @@ def evaluate_model(
 import numpy as np
 import xarray as xr
 from typing import List, Tuple
+from typing import Optional
+import numpy as np
 
 def extract_target_variable(
     ds: xr.Dataset,
@@ -69,7 +71,7 @@ def extract_target_variable(
     Extracts specified target variables from an xarray Dataset, reshapes them for modeling, 
     and returns the resulting array along with a mask indicating non-NaN values.
 
-    Parameters:
+    Args:
         ds (xr.Dataset): The input xarray Dataset.
         target_vars (List[str]): List of target variable names to extract from the Dataset.
 
@@ -82,9 +84,6 @@ def extract_target_variable(
             - mask (np.ndarray): A numpy array of the same shape as `target`, where:
                 - 1 indicates a non-NaN value.
                 - 0 indicates a NaN value.
-    
-    Example usage:
-        target, mask = extract_target_variable(ds, ['swvl1'])
     """
     # Extract the target variables as DataArrays
     data_arrays = [ds[var] for var in target_vars]
@@ -100,8 +99,6 @@ def extract_target_variable(
 
     return target, mask
 
-# Example usage:
-# target, mask = extract_target_variable(ds, ['swvl1'])
 
 import numpy as np
 import xarray as xr
@@ -115,7 +112,7 @@ def extract_covariates(
     Extracts specified covariates from an xarray Dataset, reshapes them for modeling,
     and returns the resulting array with NaN values replaced by 0.
 
-    Parameters:
+    Args:
         ds (xr.Dataset): The input xarray Dataset.
         variables (List[str]): List of variable names to extract from the Dataset as covariates.
 
@@ -124,13 +121,6 @@ def extract_covariates(
                     - time: The temporal dimension.
                     - nodes: Flattened latitude-longitude pairs.
                     - channels: The number of covariate variables.
-    Example usage:
-        covariates = extract_covariates(ds, [
-            'u10', 'v10', 't2m', 'sst', 'sp', 'tp', 
-            'ssr', 'ssrd', 'tcc', 'cl', 'e', 'pev', 
-            'ro', 'asn', 'slt', 'cvh', 'lai_hv', 
-            'tvh', 'z', 'season'
-        ])
     """
     # Extract the covariate variables as DataArrays
     data_arrays = [ds[var] for var in variables]
@@ -146,13 +136,6 @@ def extract_covariates(
 
     return covariates
 
-# Example usage:
-# covariates = extract_covariates(ds, [
-#     'u10', 'v10', 't2m', 'sst', 'sp', 'tp', 
-#     'ssr', 'ssrd', 'tcc', 'cl', 'e', 'pev', 
-#     'ro', 'asn', 'slt', 'cvh', 'lai_hv', 
-#     'tvh', 'z', 'season'
-# ])
 
 import pandas as pd
 import numpy as np
@@ -165,7 +148,7 @@ def generate_metadata_array(
     Generates a metadata numpy array from a given xarray Dataset by extracting unique
     latitude and longitude combinations and assigning a unique node ID to each combination.
 
-    Parameters:
+    Args:
         ds (xr.Dataset): Preloaded xarray Dataset containing spatial coordinates.
 
     Returns:
@@ -195,16 +178,18 @@ def generate_metadata_array(
 
     return metadata_array
 
-# Example usage:
-# metadata_array = generate_metadata_array(ds=ds)
-
 
 import pandas as pd
 from tsl.ops.similarities import geographical_distance
 
+import os
+import numpy as np
+import pandas as pd
+
 def create_distance_matrix(parquet_path: str, to_rad: bool = True):
     """
     Create a geographical distance matrix from metadata stored in a parquet file.
+    If the distance matrix already exists, load it instead of recomputing.
 
     Args:
         parquet_path (str): Path to the parquet file containing metadata.
@@ -216,26 +201,31 @@ def create_distance_matrix(parquet_path: str, to_rad: bool = True):
     Example usage:
         distance_matrix = create_distance_matrix(parquet_file_path)
     """
-    try:
-        # Load metadata from the parquet file
-        metadata = pd.read_parquet(parquet_path)
+    distance_matrix_path = "drought-forecasting/modeling-pipeline/data/05_model_input/distance_matrix.npy"
 
-        # Validate the presence of required columns
-        required_columns = {'latitude', 'longitude'}
-        if not required_columns.issubset(metadata.columns):
-            raise ValueError(f"The metadata file must contain the columns: {required_columns}")
+    # Check if the file already exists
+    if os.path.exists(distance_matrix_path):
+        print("Loading existing distance matrix from file.")
+        return np.load(distance_matrix_path)
 
-        # Calculate geographical distances
-        distance_matrix = geographical_distance(metadata, to_rad=to_rad).values
+    print("Generating new distance matrix.")
 
-        return distance_matrix
+    # Load metadata from the parquet file
+    metadata = pd.read_parquet(parquet_path)
 
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        raise
+    # Validate the presence of required columns
+    required_columns = {'latitude', 'longitude'}
+    if not required_columns.issubset(metadata.columns):
+        raise ValueError(f"The metadata file must contain the columns: {required_columns}")
 
-# Create the distance matrix
-# distance_matrix = create_distance_matrix(parquet_file_path)
+    # Calculate geographical distances
+    distance_matrix = geographical_distance(metadata, to_rad=to_rad).values
+
+    # Save the computed distance matrix for future use
+    np.save(distance_matrix_path, distance_matrix)
+
+    return distance_matrix
+
 
 import numpy as np
 import pandas as pd 
@@ -324,6 +314,11 @@ class SoilWaterDataset(TabularDataset):
             raise ValueError(f"Unknown similarity method: {method}")
 
 
+import os
+import torch
+import numpy as np
+from typing import Optional
+
 def get_connectivity_matrix(
     mode: str = 'connectivity',
     target: Optional[np.ndarray] = None,
@@ -341,6 +336,7 @@ def get_connectivity_matrix(
 ):
     """
     Compute the connectivity matrix for the SoilWaterDataset.
+    If a precomputed connectivity matrix exists, load it instead of recomputing.
 
     Args:
         mode (str): Mode of the dataset. Options are 'connectivity' or 'training'.
@@ -359,26 +355,25 @@ def get_connectivity_matrix(
 
     Returns:
         scipy.sparse.spmatrix: Connectivity matrix in the specified layout.
-
-    Example usage:
-        connectivity_matrix = get_connectivity_matrix(
-            mode='connectivity',
-            target=target_array,
-            mask=mask_array,
-            distances=distances_array,
-            covariates=covariates_array,
-            metadata=metadata_array
-        )
     """
+    connectivity_matrix_path = "drought-forecasting/modeling-pipeline/data/05_model_input/connectivity.pt"
+
+    # Check if the precomputed connectivity matrix exists
+    if os.path.exists(connectivity_matrix_path):
+        print("Loading existing connectivity matrix from file.")
+        return torch.load(connectivity_matrix_path)
+
+    print("Generating new connectivity matrix.")
+
     # Create an instance of SoilWaterDataset in the specified mode
     dataset = SoilWaterDataset(mode=mode,
-                                target=target,
-                                mask=mask,
-                                distances=distances,
-                                covariates=covariates,
-                                metadata=metadata)
+                               target=target,
+                               mask=mask,
+                               distances=distances,
+                               covariates=covariates,
+                               metadata=metadata)
 
-    # Get the connectivity matrix
+    # Compute the connectivity matrix
     connectivity = dataset.get_connectivity(
         method=method,
         threshold=threshold,
@@ -388,37 +383,41 @@ def get_connectivity_matrix(
         force_symmetric=force_symmetric,
         layout=layout
     )
-    
+
+    # Save the computed connectivity matrix for future use
+    torch.save(connectivity, connectivity_matrix_path)
+
     return connectivity
 
 
+
 # Create an instance of SoilWaterDataset in the specified mode
-dataset = SoilWaterDataset(mode='training',
-                            target=target,
-                            mask=mask,
-                            covariates=covariates)
+# dataset = SoilWaterDataset(mode='training',
+#                             target=target,
+#                             mask=mask,
+#                             covariates=covariates)
 
-import torch
+# import torch
 
-connectivity = torch.load("soil-water-forecasting/modeling-pipeline/data/05_model_input/connectivity.pt")
+# connectivity = torch.load("soil-water-forecasting/modeling-pipeline/data/05_model_input/connectivity.pt")
 
-from tsl.data import SpatioTemporalDataset
+# from tsl.data import SpatioTemporalDataset
 
-# covariates=dict(u=dataset.covariates['u'])
-covariates=dataset.covariates
-mask = dataset.mask
+# # covariates=dict(u=dataset.covariates['u'])
+# covariates=dataset.covariates
+# mask = dataset.mask
 
-horizon=6
-window=12
-stride=1
+# horizon=6
+# window=12
+# stride=1
 
-torch_dataset = SpatioTemporalDataset(target=dataset.dataframe(),
-                                      mask=mask,
-                                      covariates=covariates,
-                                      connectivity=connectivity,
-                                      horizon=horizon, 
-                                      window=window, 
-                                      stride=stride 
-                                      )
+# torch_dataset = SpatioTemporalDataset(target=dataset.dataframe(),
+#                                       mask=mask,
+#                                       covariates=covariates,
+#                                       connectivity=connectivity,
+#                                       horizon=horizon, 
+#                                       window=window, 
+#                                       stride=stride 
+#                                       )
 
-czy ja moge to jakos zapisac?
+# czy ja moge to jakos zapisac?

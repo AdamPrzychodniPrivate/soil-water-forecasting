@@ -3,12 +3,12 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "soil_water_forecasting"
+name = "drought_forecasting"
 readme = "README.md"
 dynamic = ["dependencies", "version"]
 
 [project.scripts]
-"soil-water-forecasting" = "soil_water_forecasting.__main__:main"
+"soil-water-forecasting" = "drought_forecasting.__main__:main"
 
 [project.entry-points."kedro.hooks"]
 
@@ -33,14 +33,14 @@ dev = [
 
 [tool.setuptools.dynamic]
 dependencies = {file = "requirements.txt"}
-version = {attr = "soil_water_forecasting.__version__"}
+version = {attr = "drought_forecasting.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
 namespaces = false
 
 [tool.kedro]
-package_name = "soil_water_forecasting"
+package_name = "drought_forecasting"
 project_name = "soil-water-forecasting"
 kedro_init_version = "0.19.9"
 tools = "['Linting', 'Testing', 'Custom Logging', 'Documentation', 'Data Structure', 'Kedro Viz']"
@@ -50,7 +50,7 @@ source_dir = "src"
 [tool.pytest.ini_options]
 addopts = """
 --cov-report term-missing \
---cov src/soil_water_forecasting -ra"""
+--cov src/drought_forecasting -ra"""
 
 [tool.coverage.report]
 fail_under = 0

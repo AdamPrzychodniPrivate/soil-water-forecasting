@@ -12,29 +12,26 @@ model_options:
     - review_scores_rating
 
 target:
-  - swvl1             # Volumetric soil water layer 1
+  - tp                # Total precipitation
 
 covariates:
   - u10               # 10-meter U wind component
   - v10               # 10-meter V wind component
-  - t2m               # 2-meter temperature
+  - d2m               # 2-meter dewpoint temperature
   - sst               # Sea surface temperature
   - sp                # Surface pressure
-  - tp                # Total precipitation
-  - ssr               # Surface solar radiation
-  - ssrd              # Surface solar radiation downward
+  - msl               # Mean sea level pressure
   - tcc               # Total cloud cover
-  - cl                # Cloud liquid water content
+  - tclw              # Total column cloud liquid water
+  - tciw              # Total column cloud ice water
   - e                 # Evaporation
   - pev               # Potential evaporation
   - ro                # Runoff
-  - asn               # Snow albedo
-  - slt               # Soil type
-  - cvh               # High vegetation cover
-  - lai_hv            # High vegetation leaf area index
-  - tvh               # High vegetation transpiration
   - z                 # Geopotential
+  - si10              # 10-meter wind speed
+  - lsm               # Land-sea mask
   - season            # Season (single temporal feature)
+
 
 connectivity:
   method: distance
