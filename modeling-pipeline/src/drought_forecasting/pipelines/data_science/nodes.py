@@ -186,42 +186,36 @@ import os
 import numpy as np
 import pandas as pd
 
-def create_distance_matrix(parquet_path: str, to_rad: bool = True):
+import os
+import numpy as np
+import pandas as pd
+
+def create_distance_matrix(metadata: pd.DataFrame) -> np.ndarray:
     """
-    Create a geographical distance matrix from metadata stored in a parquet file.
-    If the distance matrix already exists, load it instead of recomputing.
+    Computes or loads a geographical distance matrix based on the provided metadata.
+
+    If a precomputed distance matrix exists, it is loaded from a file to avoid redundant calculations.
+    Otherwise, a new distance matrix is generated and saved for future use.
 
     Args:
-        parquet_path (str): Path to the parquet file containing metadata.
-        to_rad (bool): Whether to convert coordinates to radians before calculation.
+        metadata (pd.DataFrame): A DataFrame containing latitude, longitude, and other relevant metadata.
 
     Returns:
-        numpy.ndarray: A NumPy array containing the distance matrix.
-
-    Example usage:
-        distance_matrix = create_distance_matrix(parquet_file_path)
+        np.ndarray: A NumPy array representing the pairwise geographical distances between locations.
     """
     distance_matrix_path = "drought-forecasting/modeling-pipeline/data/05_model_input/distance_matrix.npy"
 
-    # Check if the file already exists
+    # Check if a precomputed distance matrix file exists
     if os.path.exists(distance_matrix_path):
         print("Loading existing distance matrix from file.")
         return np.load(distance_matrix_path)
 
-    print("Generating new distance matrix.")
+    print("Generating a new distance matrix.")
 
-    # Load metadata from the parquet file
-    metadata = pd.read_parquet(parquet_path)
+    # Compute the geographical distance matrix
+    distance_matrix = geographical_distance(metadata, to_rad=True)
 
-    # Validate the presence of required columns
-    required_columns = {'latitude', 'longitude'}
-    if not required_columns.issubset(metadata.columns):
-        raise ValueError(f"The metadata file must contain the columns: {required_columns}")
-
-    # Calculate geographical distances
-    distance_matrix = geographical_distance(metadata, to_rad=to_rad).values
-
-    # Save the computed distance matrix for future use
+    # Save the computed distance matrix to file for future use
     np.save(distance_matrix_path, distance_matrix)
 
     return distance_matrix

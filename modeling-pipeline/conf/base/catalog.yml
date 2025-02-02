@@ -99,6 +99,10 @@ metadata_array:
   type: pickle.PickleDataset
   filepath: data/05_model_input/metadata_array.npy
 
+metadata_parquet:
+  type: pandas.ParquetDataset
+  filepath: data/05_model_input/metadata.parquet
+
 distance_matrix:
   type: pickle.PickleDataset
   filepath: data/05_model_input/distance_matrix.npy

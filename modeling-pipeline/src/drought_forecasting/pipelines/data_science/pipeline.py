@@ -44,7 +44,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             ),
             node(
                 func=create_distance_matrix,
-                inputs="metadata_array",
+                inputs="metadata_parquet",
                 outputs="distance_matrix",
                 name="extract_distance_matrix_node"
             ),
