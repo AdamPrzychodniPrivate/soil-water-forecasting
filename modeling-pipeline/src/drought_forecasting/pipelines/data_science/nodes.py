@@ -5,6 +5,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import max_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 
+import os
+import numpy as np
+import pandas as pd
+from tsl.ops.similarities import geographical_distance
 
 def split_data(data: pd.DataFrame, parameters: dict) -> tuple:
     """Splits data into features and targets training and test sets.
@@ -179,107 +183,65 @@ def generate_metadata_array(
     return metadata_array
 
 
-import pandas as pd
-from tsl.ops.similarities import geographical_distance
-
-import os
-import numpy as np
-import pandas as pd
-
-import os
-import numpy as np
-import pandas as pd
-
 def create_distance_matrix(metadata: pd.DataFrame) -> np.ndarray:
     """
-    Computes or loads a geographical distance matrix based on the provided metadata.
-
-    If a precomputed distance matrix exists, it is loaded from a file to avoid redundant calculations.
-    Otherwise, a new distance matrix is generated and saved for future use.
-
+    Computes the pairwise geographical distance matrix based on provided metadata.
+    
+    This function calculates the great-circle distances between locations
+    using their latitude and longitude coordinates.
+    
     Args:
-        metadata (pd.DataFrame): A DataFrame containing latitude, longitude, and other relevant metadata.
-
+        metadata (pd.DataFrame):
+            A DataFrame containing latitude and longitude columns
+            for the locations of interest.
+    
     Returns:
-        np.ndarray: A NumPy array representing the pairwise geographical distances between locations.
+        np.ndarray:
+            A 2D NumPy array where each entry (i, j) represents the geographical 
+            distance between location i and location j in kilometers.
     """
-    distance_matrix_path = "drought-forecasting/modeling-pipeline/data/05_model_input/distance_matrix.npy"
-
-    # Check if a precomputed distance matrix file exists
-    if os.path.exists(distance_matrix_path):
-        print("Loading existing distance matrix from file.")
-        return np.load(distance_matrix_path)
-
-    print("Generating a new distance matrix.")
-
+    
     # Compute the geographical distance matrix
-    distance_matrix = geographical_distance(metadata, to_rad=True)
-
-    # Save the computed distance matrix to file for future use
-    np.save(distance_matrix_path, distance_matrix)
-
+    distance_matrix = geographical_distance(metadata, to_rad=True).values
+    
     return distance_matrix
 
 
+
+from typing import Optional, Union, List
 import numpy as np
 import pandas as pd 
 
 from tsl.datasets.prototypes import TabularDataset
 from tsl.ops.similarities import gaussian_kernel
 
-class SoilWaterDataset(TabularDataset):
+class Dataset(TabularDataset):
 
     similarity_options = {'distance', 'grid'}
 
     def __init__(self,
-                 mode: str = 'connectivity',
-                 target: Optional[np.ndarray] = None,
-                 mask: Optional[np.ndarray] = None,
-                 distances: Optional[np.ndarray] = None,
-                 covariates: Optional[np.ndarray] = None,
-                 metadata: Optional[np.ndarray] = None):
-        """
-        Initialize the SoilWaterDataset.
+                 target,
+                 mask, 
+                 distances,
+                 u,
+                 metadata,
+                 method
+                 ):
 
-        Args:
-            mode (str): Mode of the dataset. Options are 'connectivity' or 'training'.
-            target (Optional[np.ndarray]): Target data.
-            mask (Optional[np.ndarray]): Mask data.
-            distances (Optional[np.ndarray]): Precomputed distance matrix (required in connectivity mode).
-            covariates (Optional[np.ndarray]): Covariates data.
-            metadata (Optional[np.ndarray]): Metadata (required in connectivity mode).
-        """
-        self.mode = mode
-        self.target = target
-        self.mask = mask
-        self.distances = distances
-        self.covariates = covariates
-        self.metadata = metadata
-
-        if self.mode not in ['connectivity', 'training']:
-            raise ValueError("Mode must be either 'connectivity' or 'training'")
-
-        if self.mode == 'connectivity':
-            if self.distances is None or self.metadata is None:
-                raise ValueError("'distances' and 'metadata' are required in 'connectivity' mode")
-
-        covariates_dict = {
-            'u': self.covariates
+        covariates = {
+            'u': (u),
+            'metadata' : (metadata),
+            'distances': (distances)
         }
 
-        if self.mode == 'connectivity':
-            covariates_dict.update({
-                'metadata': self.metadata,
-                'distances': self.distances
-            })
-
-        super().__init__(target=self.target,
-                         mask=self.mask,
-                         covariates=covariates_dict,
-                         similarity_score='distance',
+        super().__init__(target=target,
+                         mask=mask,
+                         covariates=covariates,
+                         similarity_score=method,
                          temporal_aggregation='mean',
                          spatial_aggregation='mean',
-                         name='SoilWaterDataset')
+                         name='Dataset')
+
 
     def compute_similarity(self, method: str, **kwargs):
         """
@@ -314,7 +276,6 @@ import numpy as np
 from typing import Optional
 
 def get_connectivity_matrix(
-    mode: str = 'connectivity',
     target: Optional[np.ndarray] = None,
     mask: Optional[np.ndarray] = None,
     distances: Optional[np.ndarray] = None,
@@ -329,11 +290,8 @@ def get_connectivity_matrix(
     layout: str = "csr"
 ):
     """
-    Compute the connectivity matrix for the SoilWaterDataset.
-    If a precomputed connectivity matrix exists, load it instead of recomputing.
 
     Args:
-        mode (str): Mode of the dataset. Options are 'connectivity' or 'training'.
         target (Optional[np.ndarray]): Target data.
         mask (Optional[np.ndarray]): Mask data.
         distances (Optional[np.ndarray]): Precomputed distance matrix.
@@ -350,23 +308,13 @@ def get_connectivity_matrix(
     Returns:
         scipy.sparse.spmatrix: Connectivity matrix in the specified layout.
     """
-    connectivity_matrix_path = "drought-forecasting/modeling-pipeline/data/05_model_input/connectivity.pt"
-
-    # Check if the precomputed connectivity matrix exists
-    if os.path.exists(connectivity_matrix_path):
-        print("Loading existing connectivity matrix from file.")
-        return torch.load(connectivity_matrix_path)
-
-    print("Generating new connectivity matrix.")
-
-    # Create an instance of SoilWaterDataset in the specified mode
-    dataset = SoilWaterDataset(mode=mode,
-                               target=target,
-                               mask=mask,
-                               distances=distances,
-                               covariates=covariates,
-                               metadata=metadata)
-
+    dataset = Dataset(target=target,
+                         mask=mask,
+                         distances=distances,
+                         u=covariates,
+                         metadata=metadata,
+                         method=method)
+                         
     # Compute the connectivity matrix
     connectivity = dataset.get_connectivity(
         method=method,
@@ -378,40 +326,4 @@ def get_connectivity_matrix(
         layout=layout
     )
 
-    # Save the computed connectivity matrix for future use
-    torch.save(connectivity, connectivity_matrix_path)
-
     return connectivity
-
-
-
-# Create an instance of SoilWaterDataset in the specified mode
-# dataset = SoilWaterDataset(mode='training',
-#                             target=target,
-#                             mask=mask,
-#                             covariates=covariates)
-
-# import torch
-
-# connectivity = torch.load("soil-water-forecasting/modeling-pipeline/data/05_model_input/connectivity.pt")
-
-# from tsl.data import SpatioTemporalDataset
-
-# # covariates=dict(u=dataset.covariates['u'])
-# covariates=dataset.covariates
-# mask = dataset.mask
-
-# horizon=6
-# window=12
-# stride=1
-
-# torch_dataset = SpatioTemporalDataset(target=dataset.dataframe(),
-#                                       mask=mask,
-#                                       covariates=covariates,
-#                                       connectivity=connectivity,
-#                                       horizon=horizon, 
-#                                       window=window, 
-#                                       stride=stride 
-#                                       )
-
-# czy ja moge to jakos zapisac?

@@ -111,7 +111,6 @@ connectivity_matrix:
   type: pickle.PickleDataset
   filepath: data/05_model_input/connectivity.pkl
 
-
 preprocessed_companies:
   type: pandas.ParquetDataset
   filepath: data/02_intermediate/preprocessed_companies.parquet
