@@ -139,89 +139,88 @@ def fillna_in_variables(
     return filled_ds
 
 
+from typing import List, Union, Optional, Literal
 import numpy as np
 import xarray as xr
 
 def interpolate_to_target_grid(
-    ds, 
-    target_lat, 
-    target_lon, 
-    method="linear"
-):
+    ds: xr.Dataset, 
+    target_lat: np.ndarray, 
+    target_lon: np.ndarray, 
+    method: Literal["linear", "nearest", "zero", "slinear", "quadratic", "cubic", "quintic"] = "linear"
+) -> xr.Dataset:
     """
     Interpolates an xarray Dataset to a specified target latitude and longitude grid.
     
     Args:
         ds (xr.Dataset): The input dataset to be interpolated.
-        target_lat (array-like): Target latitude values (e.g., np.arange(-90, 90, 1)).
-        target_lon (array-like): Target longitude values (e.g., np.arange(0, 360, 1)).
-        method (str): Interpolation method. Defaults to 'linear'.
-                      Options include 'linear', 'nearest', etc.
-    
+        target_lat (np.ndarray): Target latitude values as a NumPy array.
+        target_lon (np.ndarray): Target longitude values as a NumPy array.
+        method (Literal): Interpolation method, restricted to allowed values.
+
     Returns:
         xr.Dataset: The interpolated dataset on the specified target grid.
     """
-    # Step 1: Ensure latitude is in ascending order
     if ds.latitude[0] > ds.latitude[-1]:
         ds = ds.sortby("latitude")
-    
-    # Step 2: Perform interpolation
+
     interpolated_ds = ds.interp(latitude=target_lat, longitude=target_lon, method=method)
-    
     return interpolated_ds
 
 
-from typing import List, Union
-import numpy as np
-import xarray as xr
+from typing import List, Union, Optional
 
 
 def preprocess(
     ds_0: xr.Dataset,
     ds_1: xr.Dataset,
     ds_2: xr.Dataset,
-    target_lat: np.ndarray,
-    target_lon: np.ndarray,
-    method: str = "linear",
-    fill_variables: List[str] = None,
+    target_lat: List[float],
+    target_lon: List[float],
+    method: Literal["linear", "nearest", "zero", "slinear", "quadratic", "cubic", "quintic"] = "linear",
+    fill_variables: Optional[List[str]] = None,
     fill_value: Union[int, float] = 0
 ) -> xr.Dataset:
     """
-    Preprocesses and merges multiple xarray datasets with the following steps:
+    Preprocesses and merges multiple xarray datasets:
       1. Merges datasets.
-      2. Fills NaN values in specified variables with a given fill value.
+      2. Fills NaN values in specified variables.
       3. Drops unnecessary variables.
-      4. Interpolates the dataset to a target latitude and longitude grid.
+      4. Interpolates to target grid.
 
     Args:
-        ds_0 (xr.Dataset): First dataset to merge and preprocess.
-        ds_1 (xr.Dataset): Second dataset to merge and preprocess.
-        ds_2 (xr.Dataset): Third dataset to merge and preprocess.
-        target_lat (np.ndarray): Target latitude grid for interpolation.
-        target_lon (np.ndarray): Target longitude grid for interpolation.
-        method (str): Interpolation method. Defaults to 'linear'.
-        fill_variables (List[str]): Variables to fill NaN values for. Defaults to None.
-        fill_value (Union[int, float]): Value to fill NaN values with. Defaults to 0.
+        ds_0 (xr.Dataset): First dataset.
+        ds_1 (xr.Dataset): Second dataset.
+        ds_2 (xr.Dataset): Third dataset.
+        target_lat (List[float]): Target latitude grid as list from YAML.
+        target_lon (List[float]): Target longitude grid as list from YAML.
+        method (str): Interpolation method.
+        fill_variables (List[str]): Variables to fill NaN values.
+        fill_value (Union[int, float]): Fill value.
 
     Returns:
-        xr.Dataset: The preprocessed and interpolated dataset.
+        xr.Dataset: Processed dataset.
     """
-    # Step 1: Merge datasets
     datasets = [ds_0, ds_1, ds_2]
     ds = merge_datasets(datasets)
 
-    # Step 2: Fill NaN values in specified variables
     if fill_variables:
-        ds = fillna_in_variables(ds, fill_variables, fill_value)
+        for var in fill_variables:
+            if var in ds:
+                ds[var] = ds[var].fillna(fill_value)
 
-    # Step 3: Drop unnecessary variables
     drop_vars = ["number", "expver"]
     ds = ds.drop_vars([var for var in drop_vars if var in ds])
 
-    # Step 4: Interpolate to the target grid
-    ds = interpolate_to_target_grid(ds, target_lat, target_lon, method)
+    # Convert YAML list to NumPy array before interpolation
+    target_lat_np = np.arange(*target_lat)  # Converts [-90, 90, 1] → np.arange(-90, 90, 1)
+    target_lon_np = np.arange(*target_lon)  # Converts [0, 360, 1] → np.arange(0, 360, 1)
+
+    # Interpolation step
+    ds = interpolate_to_target_grid(ds, target_lat_np, target_lon_np, method)
 
     return ds
+
 
 
 import xarray as xr
