@@ -141,25 +141,28 @@ def extract_covariates(
     return covariates
 
 
-import pandas as pd
-import numpy as np
 import xarray as xr
+import numpy as np
+import pandas as pd
 
 def generate_metadata_array(
     ds: xr.Dataset
-) -> np.ndarray:
+) -> tuple[pd.DataFrame, np.ndarray]:
     """
-    Generates a metadata numpy array from a given xarray Dataset by extracting unique
-    latitude and longitude combinations and assigning a unique node ID to each combination.
+    Generates a metadata DataFrame and numpy array from a given xarray Dataset 
+    by extracting unique latitude and longitude combinations and assigning a 
+    unique node ID to each combination.
 
     Args:
         ds (xr.Dataset): Preloaded xarray Dataset containing spatial coordinates.
 
     Returns:
-        np.ndarray: A numpy array containing latitude, longitude, and node IDs, with shape (nodes, 3).
+        tuple[pd.DataFrame, np.ndarray]: 
+            - A DataFrame with 'lat', 'lon', and 'node_id' set as the index.
+            - A numpy array containing latitude, longitude, and node IDs, with shape (nodes, 3).
     
     Example usage:
-        metadata_array = generate_metadata_array(ds=ds)
+        metadata_df, metadata_array = generate_metadata_array(ds=ds)
     """
     # Extract latitude and longitude values
     latitudes = ds.coords['latitude'].values
@@ -177,10 +180,51 @@ def generate_metadata_array(
     # Add a unique node ID
     metadata_df['node_id'] = metadata_df.index
 
-    # Convert metadata to a numpy array
-    metadata_array = metadata_df.to_numpy()
+    # Set node_id as the index
+    metadata_df = metadata_df.set_index('node_id')
 
-    return metadata_array
+    # Convert metadata to a numpy array
+    metadata_array = metadata_df.reset_index().to_numpy()
+
+    return metadata_df, metadata_array
+
+
+def generate_metadata(ds: xr.Dataset):
+    """
+    Generates a metadata numpy array from an xarray Dataset by extracting unique latitude and longitude
+    combinations and assigning a unique node ID to each combination.
+
+    Args:
+        ds (xr.Dataset): Preloaded xarray Dataset containing spatial coordinates.
+        save_directory (str, optional): Directory where the metadata files will be saved. Defaults to 'data/05_model_input/'.
+
+    Returns:
+        pd.DataFrame: A metadata DataFrame containing latitude, longitude, and node ID.
+        np.ndarray: A numpy array containing metadata with shape (nodes, 3).
+    """
+    # Ensure the dataset has required coordinates
+    if "latitude" not in ds.coords or "longitude" not in ds.coords:
+        raise ValueError("Dataset must contain 'latitude' and 'longitude' coordinates.")
+    
+    # Extract unique latitude and longitude values
+    latitudes = ds.coords['latitude'].values
+    longitudes = ds.coords['longitude'].values
+    
+    # Create a DataFrame with all unique combinations of latitude and longitude
+    metadata_df = pd.DataFrame({
+        'lat': np.repeat(latitudes, len(longitudes)),
+        'lon': np.tile(longitudes, len(latitudes))
+    })
+    
+    # Drop duplicates and assign unique node IDs
+    metadata_df = metadata_df.drop_duplicates().reset_index(drop=True)
+    metadata_df['node_id'] = metadata_df.index
+    
+    # Convert metadata to a NumPy array
+    metadata_array = metadata_df.to_numpy()
+    
+    return metadata_df, metadata_array
+
 
 
 def create_distance_matrix(metadata: pd.DataFrame) -> np.ndarray:
@@ -205,6 +249,7 @@ def create_distance_matrix(metadata: pd.DataFrame) -> np.ndarray:
     distance_matrix = geographical_distance(metadata, to_rad=True).values
     
     return distance_matrix
+
 
 
 

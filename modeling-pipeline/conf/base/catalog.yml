@@ -99,9 +99,11 @@ metadata_array:
   type: pickle.PickleDataset
   filepath: data/05_model_input/metadata_array.npy
 
-metadata_parquet:
-  type: pandas.ParquetDataset
-  filepath: data/05_model_input/metadata.parquet
+metadata:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/metadata.csv
+  load_args:
+    index_col: node_id
 
 distance_matrix:
   type: pickle.PickleDataset
@@ -109,7 +111,14 @@ distance_matrix:
 
 connectivity_matrix:
   type: pickle.PickleDataset
-  filepath: data/05_model_input/connectivity.pkl
+  filepath: data/05_model_input/connectivity.pt
+
+
+
+
+
+
+
 
 preprocessed_companies:
   type: pandas.ParquetDataset
