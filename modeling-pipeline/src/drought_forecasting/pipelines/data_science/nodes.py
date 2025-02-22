@@ -251,8 +251,6 @@ def create_distance_matrix(metadata: pd.DataFrame) -> np.ndarray:
     return distance_matrix
 
 
-
-
 from typing import Optional, Union, List
 import numpy as np
 import pandas as pd 
@@ -293,7 +291,7 @@ class Dataset(TabularDataset):
         Compute similarity matrix based on the specified method.
 
         Args:
-            method (str): The similarity computation method ('distance' or 'grid').
+            method (str): The similarity computation method ('distance' or 'correlation').
             **kwargs: Additional keyword arguments for similarity computation.
 
         Returns:
@@ -305,14 +303,32 @@ class Dataset(TabularDataset):
         if method == "distance":
             # Calculate a Gaussian kernel similarity from the distance matrix, using a default or provided 'theta'
             theta = kwargs.get('theta', np.std(self.distances))
-            return gaussian_kernel(self.distances, theta=theta)
-        elif method == "grid":
-            dist = self.distances.copy()
-            dist[dist > 16] = np.inf  # keep only grid edges
-            theta = kwargs.get('theta', 20)
-            return gaussian_kernel(dist, theta=theta)
+            return self.gaussian_kernel(self.distances, theta=theta)
+        elif method == "correlation":
+            # Compute the average correlation between nodes over the target features
+            # Reshape target data to have nodes as columns
+            target_values = self.target.values.reshape(len(self.target), -1, len(self.target_node_feature))
+            # Average over the target features
+            target_mean = target_values.mean(axis=2)
+            # Compute correlation between nodes
+            corr = np.corrcoef(target_mean, rowvar=False)
+            return (corr + 1) / 2  # Normalize to [0, 1]
         else:
             raise ValueError(f"Unknown similarity method: {method}")
+
+    @staticmethod
+    def gaussian_kernel(distances, theta):
+        """
+        Compute Gaussian kernel similarity from distances.
+
+        Args:
+            distances (numpy.ndarray): Distance matrix.
+            theta (float): Kernel bandwidth parameter.
+
+        Returns:
+            numpy.ndarray: Gaussian kernel similarity matrix.
+        """
+        return np.exp(-(distances ** 2) / (2 * (theta ** 2)))
 
 
 import os

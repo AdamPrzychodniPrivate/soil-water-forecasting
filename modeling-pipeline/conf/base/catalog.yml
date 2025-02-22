@@ -111,10 +111,7 @@ distance_matrix:
 
 connectivity_matrix:
   type: pickle.PickleDataset
-  filepath: data/05_model_input/connectivity.pt
-
-
-
+  filepath: data/05_model_input/connectivity.pkl
 
 
 
