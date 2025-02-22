@@ -66,5 +66,21 @@ def create_pipeline(**kwargs) -> Pipeline:
                 outputs="connectivity_matrix",
                 name="extract_connectivity_node"
             ),
+            node(
+                func=get_torch_dataset,
+                inputs=["target_data", 
+                        "target_mask", 
+                        "distance_matrix",
+                        "covariates_data",
+                        "metadata_array",
+                        "params:torch_dataset.method",
+                        "connectivity",
+                        "params:torch_dataset.horizon",
+                        "params:torch_dataset.window",
+                        "params:torch_dataset.stride",
+                        ],
+                outputs="torch_dataset",
+                name="extract_torch_dataset"
+            ),
         ]
     )

@@ -41,3 +41,9 @@ connectivity:
   include_self: False
   force_symmetric: True
   layout: csr
+
+torch_dataset:
+  method: distance
+  horizon: 4
+  window: 12
+  stride: 1

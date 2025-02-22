@@ -351,6 +351,9 @@ def get_connectivity_matrix(
     layout: str = "csr"
 ):
     """
+    Returns the weighted adjacency matrix A ∈ ℝ^(N × N), where N = self.n_nodes.
+    The element a_{i,j} ∈ A is 0 if there does not exist an edge connecting node i to node j.
+    The return type depends on the specified layout (default: 'edge_index').
 
     Args:
         target (Optional[np.ndarray]): Target data.
@@ -367,7 +370,7 @@ def get_connectivity_matrix(
         layout (str): Desired layout of the connectivity matrix ('csr', 'coo', etc.).
 
     Returns:
-        scipy.sparse.spmatrix: Connectivity matrix in the specified layout.
+        scipy.sparse._csr.csr_matrix: Connectivity matrix in the specified layout.
     """
     dataset = Dataset(target=target,
                          mask=mask,
@@ -389,41 +392,67 @@ def get_connectivity_matrix(
 
     return connectivity
 
- input   
+
+from typing import Optional
+import numpy as np
+from tsl.data import Dataset
+from tsl.datasets import SpatioTemporalDataset
 
 def get_torch_dataset(
-    # target: Optional[np.ndarray] = None,
-#     mask: Optional[np.ndarray] = None,
-#     distances: Optional[np.ndarray] = None,
-#     covariates: Optional[np.ndarray] = None,
-#     metadata: Optional[np.ndarray] = None,
-#     method: str = 'distance',
-#     connectivity 
-#     horizon=6
-#     window=12
-#     stride=1
+    target: Optional[np.ndarray] = None,
+    mask: Optional[np.ndarray] = None,
+    distances: Optional[np.ndarray] = None,
+    covariates: Optional[np.ndarray] = None,
+    metadata: Optional[np.ndarray] = None,
+    method: str = 'distance',
+    connectivity = None,
+    horizon: int = 6,
+    window: int = 12,
+    stride: int = 1
+) -> tsl.data.spatiotemporal_dataset.SpatioTemporalDataset:
+    """
+    Creates a spatio-temporal dataset for PyTorch-based processing.
 
+    Args:
+        target (Optional[np.ndarray]): Target data.
+        mask (Optional[np.ndarray]): Mask data.
+        distances (Optional[np.ndarray]): Precomputed distance matrix.
+        covariates (Optional[np.ndarray]): Covariates data.
+        metadata (Optional[np.ndarray]): Metadata.
+        method (str): Method to compute connectivity ('distance' or 'grid').
+        connectivity: Predefined connectivity structure for the dataset.
+        horizon (int): Forecasting horizon (number of future steps to predict).
+        window (int): Size of the historical window used for input features.
+        stride (int): Step size between consecutive windows.
 
-#     dataset = Dataset(target=target,
-#                          mask=mask,
-#                          distances=distances,
-#                          u=covariates,
-#                          metadata=metadata,
-#                          method=method)
+    Returns:
+        tsl.data.spatiotemporal_dataset.SpatioTemporalDataset: 
+        A PyTorch-ready spatio-temporal dataset object.
+    """
+    dataset = Dataset(
+        target=target,
+        mask=mask,
+        distances=distances,
+        u=covariates,
+        metadata=metadata,
+        method=method
+    )
     
-#     torch_dataset = SpatioTemporalDataset(target=dataset.dataframe(),
-#                                       mask=mask,
-#                                       covariates=covariates,
-#                                       connectivity=connectivity,
-#                                       horizon=horizon, 
-#                                       window=window, 
-#                                       stride=stride 
-#                                       )
+    torch_dataset = SpatioTemporalDataset(
+        target=dataset.dataframe(),
+        mask=mask,
+        covariates=covariates,
+        connectivity=connectivity,
+        horizon=horizon, 
+        window=window, 
+        stride=stride 
+    )
+    
+    return torch_dataset
 
-return torch_dataset
 
 
-def get_datamodule(
+# def get_datamodule(
 #     from tsl.data.preprocessing import StandardScaler, MinMaxScaler
 
 #     scalers = {

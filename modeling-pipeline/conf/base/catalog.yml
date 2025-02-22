@@ -113,6 +113,9 @@ connectivity_matrix:
   type: pickle.PickleDataset
   filepath: data/05_model_input/connectivity.pkl
 
+torch_dataset:
+  type: pickle.PickleDataset
+  filepath: data/05_model_input/torch_dataset.pkl
 
 
 
