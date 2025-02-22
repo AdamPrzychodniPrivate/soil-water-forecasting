@@ -117,6 +117,22 @@ torch_dataset:
   type: pickle.PickleDataset
   filepath: data/05_model_input/torch_dataset.pkl
 
+datamodule:
+  type: pickle.PickleDataset
+  filepath: data/05_model_input/datamodule.pkl
+
+model:
+  type: pickle.PickleDataset
+  filepath: data/06_models/trained_model.pkl
+
+predictor:
+  type: pickle.PickleDataset
+  filepath: data/06_models/trained_predictor.pkl
+
+test_results:
+  type: pandas.JSONDataset
+  filepath: data/08_reporting/test_results.json
+
 
 
 

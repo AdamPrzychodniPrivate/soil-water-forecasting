@@ -265,17 +265,21 @@ class Dataset(TabularDataset):
     def __init__(self,
                  target,
                  mask, 
-                 distances,
                  u,
-                 metadata,
-                 method
+                 method,
+                 distances: Optional[np.ndarray] = None,
+                 metadata: Optional[dict] = None
                  ):
 
         covariates = {
-            'u': (u),
-            'metadata' : (metadata),
-            'distances': (distances)
+            'u': u
         }
+
+        # Add optional covariates only if they are provided
+        if distances is not None:
+            covariates['distances'] = distances
+        if metadata is not None:
+            covariates['metadata'] = metadata
 
         super().__init__(target=target,
                          mask=mask,
@@ -284,7 +288,6 @@ class Dataset(TabularDataset):
                          temporal_aggregation='mean',
                          spatial_aggregation='mean',
                          name='Dataset')
-
 
     def compute_similarity(self, method: str, **kwargs):
         """
@@ -301,16 +304,13 @@ class Dataset(TabularDataset):
             ValueError: If an unknown similarity method is provided.
         """
         if method == "distance":
-            # Calculate a Gaussian kernel similarity from the distance matrix, using a default or provided 'theta'
+            if not hasattr(self, 'distances') or self.distances is None:
+                raise ValueError("Distance matrix is required for 'distance' similarity method.")
             theta = kwargs.get('theta', np.std(self.distances))
             return self.gaussian_kernel(self.distances, theta=theta)
         elif method == "correlation":
-            # Compute the average correlation between nodes over the target features
-            # Reshape target data to have nodes as columns
             target_values = self.target.values.reshape(len(self.target), -1, len(self.target_node_feature))
-            # Average over the target features
             target_mean = target_values.mean(axis=2)
-            # Compute correlation between nodes
             corr = np.corrcoef(target_mean, rowvar=False)
             return (corr + 1) / 2  # Normalize to [0, 1]
         else:
@@ -329,6 +329,7 @@ class Dataset(TabularDataset):
             numpy.ndarray: Gaussian kernel similarity matrix.
         """
         return np.exp(-(distances ** 2) / (2 * (theta ** 2)))
+
 
 
 import os
@@ -392,33 +393,22 @@ def get_connectivity_matrix(
 
     return connectivity
 
-
-from typing import Optional
-import numpy as np
-from tsl.data import Dataset
-from tsl.datasets import SpatioTemporalDataset
+from tsl.data import SpatioTemporalDataset
 
 def get_torch_dataset(
     target: Optional[np.ndarray] = None,
     mask: Optional[np.ndarray] = None,
-    distances: Optional[np.ndarray] = None,
     covariates: Optional[np.ndarray] = None,
-    metadata: Optional[np.ndarray] = None,
     method: str = 'distance',
     connectivity = None,
     horizon: int = 6,
     window: int = 12,
     stride: int = 1
-) -> tsl.data.spatiotemporal_dataset.SpatioTemporalDataset:
+) -> SpatioTemporalDataset:
     """
     Creates a spatio-temporal dataset for PyTorch-based processing.
 
     Args:
-        target (Optional[np.ndarray]): Target data.
-        mask (Optional[np.ndarray]): Mask data.
-        distances (Optional[np.ndarray]): Precomputed distance matrix.
-        covariates (Optional[np.ndarray]): Covariates data.
-        metadata (Optional[np.ndarray]): Metadata.
         method (str): Method to compute connectivity ('distance' or 'grid').
         connectivity: Predefined connectivity structure for the dataset.
         horizon (int): Forecasting horizon (number of future steps to predict).
@@ -432,16 +422,14 @@ def get_torch_dataset(
     dataset = Dataset(
         target=target,
         mask=mask,
-        distances=distances,
         u=covariates,
-        metadata=metadata,
         method=method
     )
     
     torch_dataset = SpatioTemporalDataset(
         target=dataset.dataframe(),
-        mask=mask,
-        covariates=covariates,
+        mask=dataset.mask,
+        covariates=dataset.covariates,
         connectivity=connectivity,
         horizon=horizon, 
         window=window, 
@@ -451,33 +439,189 @@ def get_torch_dataset(
     return torch_dataset
 
 
+from tsl.data.preprocessing import StandardScaler
+from tsl.data.datamodule import SpatioTemporalDataModule, TemporalSplitter
 
-# def get_datamodule(
-#     from tsl.data.preprocessing import StandardScaler, MinMaxScaler
+def get_datamodule(
+    torch_dataset,
+    val_len: float = 0.1,
+    test_len: float = 0.2,
+    batch_size: int = 4,
+    workers: int = 15
+) -> SpatioTemporalDataModule:
+    """
+    Creates a SpatioTemporalDataModule for handling data in a PyTorch-based pipeline.
 
-#     scalers = {
-#         'target': StandardScaler(axis=(0, 1)),
-#         'u': StandardScaler(axis=(0, 1))
-#     }
+    Args:
+        torch_dataset (SpatioTemporalDataset): The dataset to be used.
+        val_len (float): Proportion of data to use for validation.
+        test_len (float): Proportion of data to use for testing.
+        batch_size (int): Batch size for data loading.
+        workers (int): Number of workers for data loading.
 
-#     from tsl.data.datamodule import (SpatioTemporalDataModule,
-#                                  TemporalSplitter)
-                                 
-#     # Split data sequentially:
-#     #   |------------ dataset -----------|
-#     #   |--- train ---|- val -|-- test --|
-#     splitter = TemporalSplitter(val_len=0.1, test_len=0.2)
+    Returns:
+        SpatioTemporalDataModule: A data module ready for training and evaluation.
+    """
+    scalers = {
+        'target': StandardScaler(axis=(0, 1)),
+        'u': StandardScaler(axis=(0, 1))
+    }
+    
+    # Split dataset sequentially into training, validation, and testing sets
+    splitter = TemporalSplitter(val_len=val_len, test_len=test_len)
+    
+    # Create and setup the SpatioTemporalDataModule
+    datamodule = SpatioTemporalDataModule(
+        dataset=torch_dataset,
+        scalers=scalers,
+        mask_scaling=True,
+        splitter=splitter,
+        batch_size=batch_size, 
+        workers=workers
+    )
+    
+    datamodule.setup()
+    
+    return datamodule
 
-#     # Create a SpatioTemporalDataModule
-#     datamodule = SpatioTemporalDataModule(
-#         dataset=torch_dataset,
-#         scalers=scalers,
-#         mask_scaling=True,
-#         splitter=splitter,
-#         batch_size=4, 
-#         workers=15
-#         )
+from .TimeAndGraphAnisoModel import TimeAndGraphAnisoModel
 
-#     datamodule.setup()
+import torch
+import pytorch_lightning as pl
+from datetime import datetime
+from pathlib import Path
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
+from pytorch_lightning.loggers import TensorBoardLogger
+from .TimeAndGraphAnisoModel import TimeAndGraphAnisoModel
+from tsl.nn.metrics import MaskedMAE, MaskedMSE, MaskedMRE
+from tsl.predictors import Predictor
 
-# return datamodule
+def create_model(
+    torch_dataset,
+    hidden_size: int = 32,
+    emb_size: int = 32,
+    ff_size: int = 64,
+    n_layers: int = 3,
+    temporal_kernel_size: int = 3,
+    spatial_kernel_size: int = 3,
+    norm: str = 'layer',
+    gated: bool = True
+) -> TimeAndGraphAnisoModel:
+    """
+    Creates an instance of the TimeAndGraphAnisoModel.
+    """
+    input_size = torch_dataset.n_channels
+    n_nodes = torch_dataset.n_nodes
+    horizon = torch_dataset.horizon
+    exog_size = torch_dataset.input_map.u.shape[-1] if 'u' in torch_dataset.input_map else 0
+    
+    activation = 'elu'
+    
+    model = TimeAndGraphAnisoModel(
+        input_size=input_size,
+        horizon=horizon,
+        n_nodes=n_nodes,
+        output_size=input_size,
+        exog_size=exog_size,
+        hidden_size=hidden_size,
+        emb_size=emb_size,
+        activation=activation
+    )
+    
+    return model
+
+def create_predictor(
+    model: TimeAndGraphAnisoModel,
+    optim_class=torch.optim.Adam
+) -> Predictor:
+    """
+    Creates a Predictor instance using the given model.
+    """
+    loss_fn = MaskedMAE()
+    
+    metrics = {
+        'mae': MaskedMAE(),
+        'mse': MaskedMSE(),
+        'mre': MaskedMRE(),
+        'mae_at_1': MaskedMAE(at=0), 
+        'mae_at_2': MaskedMAE(at=1), 
+        'mae_at_3': MaskedMAE(at=2),
+        'mae_at_4': MaskedMAE(at=3),  
+    }
+    
+    predictor = Predictor(
+        model=model,
+        optim_class=optim_class,
+        optim_kwargs={'lr': 0.001},
+        loss_fn=loss_fn,
+        metrics=metrics
+    )
+    
+    return predictor
+
+def create_trainer(
+    max_epochs: int = 10,
+    log_every_n_steps: int = 2,
+    gradient_clip_val: int = 5,
+    precision: int = 16
+) -> pl.Trainer:
+    """
+    Creates a PyTorch Lightning Trainer with checkpointing and early stopping.
+    """
+    early_stop_callback = EarlyStopping(
+        monitor='val_mse',
+        patience=30,
+        mode='min'
+    )
+    
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    dirpath = Path(f'drought-forecasting/modeling-pipeline/data/06_models/TimeAndGraphAniso/logs/log_{timestamp}/')
+    dirpath.mkdir(parents=True, exist_ok=True)
+    
+    checkpoint_callback = ModelCheckpoint(
+        dirpath=dirpath,
+        save_top_k=1,
+        monitor='val_mse',
+        mode='min',
+    )
+    
+    logger_dirpath = Path(f'drought-forecasting/modeling-pipeline/data/06_models/TimeAndGraphAniso/logger/logs/log_{timestamp}/')
+    logger_dirpath.mkdir(parents=True, exist_ok=True)
+    logger = TensorBoardLogger(save_dir=logger_dirpath, name='TimeAndGraphAnisoModel')
+    
+    trainer = pl.Trainer(
+        max_epochs=max_epochs, 
+        logger=logger, 
+        callbacks=[early_stop_callback, checkpoint_callback],
+        log_every_n_steps=log_every_n_steps,
+        gradient_clip_val=gradient_clip_val,    
+        precision=precision
+    )
+    
+    return trainer
+
+def train(
+    max_epochs: int = 10,
+    log_every_n_steps: int = 2,
+    gradient_clip_val: int = 5,
+    precision: int = 16,
+    predictor=None,
+    datamodule=None
+):
+    """
+    Main function to create model, predictor, trainer, and train the model.
+    """
+    torch.set_float32_matmul_precision('medium')
+    
+    trainer = create_trainer(
+        max_epochs=max_epochs, 
+        log_every_n_steps=log_every_n_steps,
+        gradient_clip_val=gradient_clip_val,    
+        precision=precision
+    )
+    
+    trainer.fit(predictor, datamodule=torch_dataset)
+    predictor.freeze()
+    results = trainer.test(predictor, dataloaders=datamodule)
+    
+    return results

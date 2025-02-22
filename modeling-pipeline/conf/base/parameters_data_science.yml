@@ -47,3 +47,28 @@ torch_dataset:
   horizon: 4
   window: 12
   stride: 1
+
+datamodule:
+  val_len: 0.1
+  test_len: 0.2
+  batch_size: 4
+  workers: 15
+
+model:
+  hidden_size: 32
+  emb_size: 32
+  ff_size: 64
+  n_layers: 3
+  temporal_kernel_size: 3
+  spatial_kernel_size: 3
+  norm: layer
+  gated: True
+
+predictor:
+  optim_class: torch.optim.Adam
+
+training:
+  max_epochs: 2
+  log_every_n_steps: 2
+  gradient_clip_val: 5
+  precision: 16

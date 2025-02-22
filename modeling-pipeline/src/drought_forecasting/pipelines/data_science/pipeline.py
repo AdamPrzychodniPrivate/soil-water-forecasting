@@ -1,29 +1,22 @@
 from kedro.pipeline import Pipeline, node, pipeline
 
-from .nodes import evaluate_model, split_data, train_model, extract_target_variable, extract_covariates, generate_metadata, create_distance_matrix, get_connectivity_matrix
+from .nodes import (
+    evaluate_model, 
+    split_data, 
+    train_model, 
+    extract_target_variable, 
+    extract_covariates, 
+    generate_metadata, 
+    create_distance_matrix, 
+    get_connectivity_matrix,
+    get_torch_dataset,
+    get_datamodule
+    )
 
 
 def create_pipeline(**kwargs) -> Pipeline:
     return pipeline(
         [
-            node(
-                func=split_data,
-                inputs=["model_input_table", "params:model_options"],
-                outputs=["X_train", "X_test", "y_train", "y_test"],
-                name="split_data_node",
-            ),
-            node(
-                func=train_model,
-                inputs=["X_train", "y_train"],
-                outputs="regressor",
-                name="train_model_node",
-            ),
-            node(
-                func=evaluate_model,
-                inputs=["regressor", "X_test", "y_test"],
-                name="evaluate_model_node",
-                outputs="metrics",
-            ),
             node(
                 func=extract_target_variable,
                 inputs=["ds_features", "params:target"],
@@ -70,17 +63,61 @@ def create_pipeline(**kwargs) -> Pipeline:
                 func=get_torch_dataset,
                 inputs=["target_data", 
                         "target_mask", 
-                        "distance_matrix",
                         "covariates_data",
-                        "metadata_array",
                         "params:torch_dataset.method",
-                        "connectivity",
+                        "connectivity_matrix",
                         "params:torch_dataset.horizon",
                         "params:torch_dataset.window",
                         "params:torch_dataset.stride",
                         ],
                 outputs="torch_dataset",
                 name="extract_torch_dataset"
+            ),
+            node(
+                func=get_datamodule,
+                inputs=["torch_dataset", 
+                        "params:datamodule.val_len",
+                        "params:datamodule.test_len",
+                        "params:datamodule.batch_size",
+                        "params:datamodule.workers",
+                        ],
+                outputs="datamodule",
+                name="extract_datamodule"
+            ),
+            node(
+                func=create_model,
+                inputs=["torch_dataset", 
+                        "params:model.hidden_size",
+                        "params:model.emb_size",
+                        "params:model.ff_size",
+                        "params:model.n_layers",
+                        "params:model.temporal_kernel_size",
+                        "params:model.spatial_kernel_size",
+                        "params:model.norm",
+                        "params:model.gated"
+                        ],
+                outputs="model",
+                name="extract_model"
+            ),
+            node(
+                func=create_predictor,
+                inputs=["model", 
+                        "params:predictor.optim_class",
+                        ],
+                outputs="predictor",
+                name="extract_predictor"
+            ),
+            node(
+                func=train,
+                inputs=["params:training.max_epochs",
+                        "params:training.log_every_n_steps",
+                        "params:training.gradient_clip_val",
+                        "params:training.precision",
+                        "predictor",
+                        "datamodule",
+                        ],
+                outputs="test_results",
+                name="train"
             ),
         ]
     )
