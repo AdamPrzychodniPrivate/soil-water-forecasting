@@ -388,3 +388,67 @@ def get_connectivity_matrix(
     )
 
     return connectivity
+
+ input   
+
+def get_torch_dataset(
+    # target: Optional[np.ndarray] = None,
+#     mask: Optional[np.ndarray] = None,
+#     distances: Optional[np.ndarray] = None,
+#     covariates: Optional[np.ndarray] = None,
+#     metadata: Optional[np.ndarray] = None,
+#     method: str = 'distance',
+#     connectivity 
+#     horizon=6
+#     window=12
+#     stride=1
+
+
+#     dataset = Dataset(target=target,
+#                          mask=mask,
+#                          distances=distances,
+#                          u=covariates,
+#                          metadata=metadata,
+#                          method=method)
+    
+#     torch_dataset = SpatioTemporalDataset(target=dataset.dataframe(),
+#                                       mask=mask,
+#                                       covariates=covariates,
+#                                       connectivity=connectivity,
+#                                       horizon=horizon, 
+#                                       window=window, 
+#                                       stride=stride 
+#                                       )
+
+return torch_dataset
+
+
+def get_datamodule(
+#     from tsl.data.preprocessing import StandardScaler, MinMaxScaler
+
+#     scalers = {
+#         'target': StandardScaler(axis=(0, 1)),
+#         'u': StandardScaler(axis=(0, 1))
+#     }
+
+#     from tsl.data.datamodule import (SpatioTemporalDataModule,
+#                                  TemporalSplitter)
+                                 
+#     # Split data sequentially:
+#     #   |------------ dataset -----------|
+#     #   |--- train ---|- val -|-- test --|
+#     splitter = TemporalSplitter(val_len=0.1, test_len=0.2)
+
+#     # Create a SpatioTemporalDataModule
+#     datamodule = SpatioTemporalDataModule(
+#         dataset=torch_dataset,
+#         scalers=scalers,
+#         mask_scaling=True,
+#         splitter=splitter,
+#         batch_size=4, 
+#         workers=15
+#         )
+
+#     datamodule.setup()
+
+# return datamodule
